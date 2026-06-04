@@ -169,8 +169,8 @@ configure_web() {
     # Apache2
     install_if_missing apache2
 
-    # Allow mansible to read/write web files owned by wwwrun
-    usermod -a -G wwwrun "${ADMIN_USER}"
+    # Add mansible to the www group (Apache's group on SUSE) for web content access
+    usermod -a -G www "${ADMIN_USER}"
 
     # PHP8 packages — matches reference machine (10.10.12.10)
     local php_packages=(
@@ -205,9 +205,13 @@ configure_web() {
     # Deploy web content
     rsync -a --chown=wwwrun:www "${HOST_MIRROR}/srv/www/htdocs/" /srv/www/htdocs/
 
+    # sgid on all dirs so new files inherit www group automatically
+    # Dirs: rwxrwsr-x (2775), files: rw-rw-r-- (664)
+    find /srv/www/htdocs -type d -exec chmod 2775 {} +
+    find /srv/www/htdocs -type f -exec chmod 664 {} +
+
     # /srv/www/.kube/ — kubeconfig files read by kubernerdes.php
-    # Owned root:wwwrun so Apache (wwwrun) can read; kubeconfigs placed here manually
-    install -d -m 2775 -o root -g wwwrun /srv/www/.kube
+    install -d -m 2775 -o root -g www /srv/www/.kube
 
     # Ensure DocumentRoot is correct in default vhost
     local docroot_conf=/etc/apache2/default-server.conf
