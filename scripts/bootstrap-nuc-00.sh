@@ -126,10 +126,13 @@ configure_dhcp() {
     install -d -m 755 -o root -g root /etc/dhcpd.d
     cp "${HOST_MIRROR}/etc/dhcpd.d/dhcpd-hosts.conf" /etc/dhcpd.d/
 
-    # Ensure the lease file and its directory exist
-    install -d -m 755 -o dhcpd -g dhcpd /var/lib/dhcp/db
+    # Ensure the lease file and its directory exist.
+    # On OpenSUSE Leap 15.6 the dhcpd user has no matching group name; use its gid directly.
+    local dhcpd_gid
+    dhcpd_gid="$(id -g dhcpd)"
+    install -d -m 755 -o dhcpd -g "${dhcpd_gid}" /var/lib/dhcp/db
     touch /var/lib/dhcp/db/dhcpd.leases
-    chown dhcpd:dhcpd /var/lib/dhcp/db/dhcpd.leases
+    chown dhcpd:"${dhcpd_gid}" /var/lib/dhcp/db/dhcpd.leases
 
     # Bind dhcpd to the primary interface
     local iface
