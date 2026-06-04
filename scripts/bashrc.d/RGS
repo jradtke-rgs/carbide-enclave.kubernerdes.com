@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+./scripts/bashrc.d/RGS#!/usr/bin/env bash
 # RGS enclave shell environment — safe to commit, contains no credentials.
 #
 # Install:
