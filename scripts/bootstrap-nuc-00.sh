@@ -21,7 +21,7 @@
 #   2. Installs and configures chrony (NTP sync + serve)
 #   3. Installs and configures BIND (authoritative DNS for carbide-enclave.kubernerdes.com)
 #   4. Installs and configures ISC DHCP server
-#   5. Installs Apache2 and deploys web content
+#   5. Installs Apache2 + PHP8 + kubectl and deploys web content
 #   6. Installs and configures tftp-server (for iPXE ipxe.efi delivery)
 #   7. Opens required firewall ports (firewalld)
 #
@@ -156,14 +156,42 @@ configure_dhcp() {
     log "DHCP configured"
 }
 
-# ── step 5: web server (Apache2) ─────────────────────────────────────────────
+# ── step 5: web server (Apache2 + PHP8 + kubectl) ────────────────────────────
 
 configure_web() {
-    log "configuring web server (Apache2)"
+    log "configuring web server (Apache2 + PHP8 + kubectl)"
+
+    # Apache2
     install_if_missing apache2
+
+    # PHP8 packages — matches reference machine (10.10.12.10)
+    local php_packages=(
+        apache2-mod_php8
+        php8
+        php8-cli
+        php8-ctype
+        php8-dom
+        php8-iconv
+        php8-openssl
+        php8-pdo
+        php8-sqlite
+        php8-tokenizer
+        php8-xmlreader
+        php8-xmlwriter
+    )
+    for pkg in "${php_packages[@]}"; do
+        install_if_missing "${pkg}"
+    done
+
+    # kubectl — needed by kubernerdes.php (shell_exec / exec calls)
+    install_if_missing kubectl
 
     # Deploy web content
     rsync -a --chown=wwwrun:www "${HOST_MIRROR}/srv/www/htdocs/" /srv/www/htdocs/
+
+    # /srv/www/.kube/ — kubeconfig files read by kubernerdes.php
+    # Owned root:wwwrun so Apache (wwwrun) can read; kubeconfigs placed here manually
+    install -d -m 2775 -o root -g wwwrun /srv/www/.kube
 
     # Ensure DocumentRoot is correct in default vhost
     local docroot_conf=/etc/apache2/default-server.conf
@@ -173,9 +201,12 @@ configure_web() {
             || log "WARNING: check DocumentRoot in ${docroot_conf}"
     fi
 
-    systemctl enable --now apache2
-    log "Apache2 configured"
+    # Restart (not just enable) so mod_php8 is loaded if newly installed
+    systemctl enable apache2
+    systemctl restart apache2
+    log "Apache2 + PHP8 configured"
     log "web content deployed to /srv/www/htdocs"
+    log "kubeconfig drop directory: /srv/www/.kube/*.kubeconfig"
 }
 
 # ── step 6: TFTP (iPXE binary delivery) ──────────────────────────────────────
