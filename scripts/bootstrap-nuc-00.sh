@@ -35,6 +35,11 @@ HOST_MIRROR="${REPO_ROOT}/infra/nuc-00"
 
 source "${REPO_ROOT}/scripts/env.d/carbide-enclave.sh"
 
+# Kubernetes repo — needed for kubectl; only reachable pre-airgap
+KUBECTL_VERSION="v1.33"
+K8S_REPO_URL="https://pkgs.k8s.io/core:/stable:/${KUBECTL_VERSION}/rpm/"
+K8S_REPO_ALIAS="kubernetes"
+
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 log() { echo "[enclave] $*"; }
@@ -184,7 +189,15 @@ configure_web() {
     done
 
     # kubectl — needed by kubernerdes.php (shell_exec / exec calls)
-    install_if_missing kubectl
+    # Requires the Kubernetes zypper repo (internet access, pre-airgap only)
+    if ! rpm -q kubectl &>/dev/null; then
+        log "adding Kubernetes repo for kubectl"
+        zypper addrepo --refresh "${K8S_REPO_URL}" "${K8S_REPO_ALIAS}" 2>/dev/null || true
+        zypper --gpg-auto-import-keys refresh "${K8S_REPO_ALIAS}"
+        zypper install -y kubectl
+    else
+        log "kubectl already installed"
+    fi
 
     # Deploy web content
     rsync -a --chown=wwwrun:www "${HOST_MIRROR}/srv/www/htdocs/" /srv/www/htdocs/
