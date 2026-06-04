@@ -1,0 +1,108 @@
+#!ipxe
+###############################################################################
+# Harvester HCI iPXE Network Boot Menu
+###############################################################################
+#
+# OVERVIEW:
+# This iPXE script provides an interactive boot menu for deploying Harvester
+# Hyperconverged Infrastructure across multiple nodes. It automatically boots
+# from local disk after 5 seconds if no user input is detected.
+#
+# HOW IT WORKS:
+# 1. The system PXE boots and loads this iPXE script from the network
+# 2. A menu is displayed with deployment options for each node
+# 3. After timeout or selection, the appropriate boot action occurs:
+#    - Local boot: boots from the system's internal disk
+#    - Node deployment: downloads kernel, initrd, and rootfs from HTTP server
+#                       and boots with node-specific configuration
+#
+# BOOT FLOW FOR HARVESTER DEPLOYMENT:
+# 1. Load Linux kernel (vmlinuz) with boot parameters
+# 2. Load initial ramdisk (initrd) containing installation tools
+# 3. Kernel boots and fetches root filesystem (squashfs) via HTTP
+# 4. Harvester installer reads node-specific config from HTTP server
+# 5. Automated installation proceeds based on configuration (create/join)
+#
+# CONFIGURATION:
+# - Node configs specify whether to create new cluster or join existing
+# - Base URLs point to HTTP server hosting Harvester installation files
+# - Kernel parameters control console, network, and installation behavior
+#
+# REFERENCE:
+# Based on SUSE documentation:
+# https://docs.harvesterhci.io/v1.6/install/pxe-boot-install#the-ipxe-script-for-uefi-boot
+#
+###############################################################################
+
+# Common parameters for all nodes in the Harvester installations
+set config_url http://${DNS2_IP}/harvester/harvester
+set base_url http://${DNS2_IP}/harvester/${HARVESTER_VERSION}
+
+# File locations (adjust version as needed)
+set kernel_url ${base_url}/harvester-${HARVESTER_VERSION}-vmlinuz-amd64
+set initrd_url ${base_url}/harvester-${HARVESTER_VERSION}-initrd-amd64
+set initrd_name harvester-${HARVESTER_VERSION}-initrd-amd64
+set rootfs_url ${base_url}/harvester-${HARVESTER_VERSION}-rootfs-amd64.squashfs
+
+# Common kernel parameters for all Harvester installations
+set kernel_params initrd=${initrd_name} ip=dhcp net.ifnames=1 rd.cos.disable rd.net.dhcp.retry=3 rd.noverifyssl console=tty1 root=live:${rootfs_url} harvester.install.automatic=true harvester.install.skipchecks harvester.install.mode=install
+
+:start
+# Display menu with 5 second timeout (50 x 100ms)
+menu Harvester Deployment Menu
+item --gap --             ----------------------------------------
+item --key l local        Boot from local disk (default in 5s)
+item --gap --             ----------------------------------------
+item --key 1 nuc-01       Deploy Harvester to nuc-01 (create cluster)
+item --key 2 nuc-02       Deploy Harvester to nuc-02 (join cluster)
+item --key 3 nuc-03       Deploy Harvester to nuc-03 (join cluster)
+item --gap --             ----------------------------------------
+item --key r reboot       Reboot system
+item --key s shell        Drop to iPXE shell
+choose --timeout 5000 --default local target && goto ${target}
+
+:local
+echo Booting from local disk...
+sanboot --no-describe --drive 0x80 || goto failed
+
+# Node-specific parameters
+:nuc-01
+echo Deploying Harvester to nuc-01 (create mode)... static boot
+#set install_config harvester.install.config_url=${config_url}/config-create-nuc-01.yaml
+#goto deploy
+kernel http://${DNS2_IP}/harvester/${HARVESTER_VERSION}/harvester-${HARVESTER_VERSION}-vmlinuz-amd64 ip=dhcp rd.cos.disable rd.net.dhcp.retry=3 rd.noverifyssl net.ifnames=1 root=live:http://${DNS2_IP}/harvester/${HARVESTER_VERSION}/harvester-${HARVESTER_VERSION}-rootfs-amd64.squashfs console=tty1 harvester.install.automatic=true harvester.install.skipchecks=true harvester.install.config_url=http://${DNS2_IP}/harvester/harvester/config-create-nuc-01.yaml
+initrd http://${DNS2_IP}/harvester/${HARVESTER_VERSION}/harvester-${HARVESTER_VERSION}-initrd-amd64
+boot
+
+:nuc-02
+echo Deploying Harvester to nuc-02 (join mode)...
+set install_config harvester.install.config_url=${config_url}/config-join-nuc-02.yaml
+goto deploy
+
+:nuc-03
+echo Deploying Harvester to nuc-03 (join mode)...
+set install_config harvester.install.config_url=${config_url}/config-join-nuc-03.yaml
+goto deploy
+
+:deploy
+echo Loading kernel from ${kernel_url}...
+kernel ${kernel_url} ${kernel_params} ${install_config} || goto failed
+echo Loading initrd from ${initrd_url}...
+initrd ${initrd_url} || goto failed
+echo Booting Harvester installation...
+boot || goto failed
+
+:reboot
+echo Rebooting in 2 seconds...
+sleep 2
+reboot
+
+:shell
+echo Dropping to iPXE shell...
+shell
+
+:failed
+echo Boot failed! Dropping to shell for debugging...
+echo Press any key to continue...
+prompt
+shell

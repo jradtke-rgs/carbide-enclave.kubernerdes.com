@@ -1,0 +1,45 @@
+---
+scheme_version: 1
+server_url: https://10.0.0.100
+token: KentuckyHarvester
+os:
+  hostname: nuc-02
+  ssh_authorized_keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCozGnmSeEzFQovxzvwgLaQmfE5/eGDfzKHMwofs1rvdef6WD89ubQjh2bFDe69IPGh0kV93QraLUXL1hDa3J+k9LIhr7HqAg365bm3UtY7jIDADmAjDo8yVJ5oiSMvmgUlaw3REFjaMXwQXCddDVWhoWFk/gE1w/14/EbFfSJni9iohl+A76s5GRlVZXSTVb/zYxeQFAlstUaxQVFD8EGNcWI5Ptydgil+hlrA7k16qrkj+5l5muDkRLndcsR/zrpLy2cdNWmI6s/aGQ/IHpUmLf92AAIbzMskK4Asdno1RiuNFybfjoPomo1NlYh6J/VS2uEq4Zg4zWuVbl7yjTRx mansible@kubernerd
+    - ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBADUeWpBo8XY3ePFn/vX2yMjx8MfC3ZO1Jl6t5jZ0hCHwcc9x4Yp4ASXn1epmfEFqmhTJkEKunJafpKnQ0lm1yW/KgA+ew7t+dq2l0yck6/X3cPZlxf8nYIvTXmHf6DYhJ54U26bTaB8iSaXkhRt2RiKWDeqbFp6oJkiWQMtppJuHJlIbA== mansible@nuc-00-02
+  password: Passw0rd01
+  ntp_servers:
+    - 0.suse.pool.ntp.org
+    - 1.suse.pool.ntp.org
+    - 2.suse.pool.ntp.org
+  dns_nameservers:
+    - 10.0.0.9
+    - 10.0.0.8
+    - 8.8.8.8
+install:
+  skipchecks: true
+  mode: join
+  management_interface:
+    interfaces:
+      - name: eno1
+        hwAddr: "1c:69:7a:ab:23:50"
+    default_route: true
+    method: static
+    ip: 10.0.0.102
+    subnet_mask: 255.255.252.0
+    gateway: 10.0.0.1
+    bond_options:
+      mode: active-backup
+      miimon: 100
+  device: /dev/sda
+  data_disk: /dev/nvme0n1
+  iso_url: http://10.0.0.10/harvester/v1.7.1/harvester-v1.7.1-amd64.iso
+sans:
+  - harvester.homelab.kubernerdes.com
+  - 10.0.0.100
+  - nuc-01.homelab.kubernerdes.com
+  - nuc-02.homelab.kubernerdes.com
+  - nuc-03.homelab.kubernerdes.com
+  - 10.0.0.101
+  - 10.0.0.102
+  - 10.0.0.103

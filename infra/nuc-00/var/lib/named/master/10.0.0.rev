@@ -1,0 +1,31 @@
+; Reverse zone for 10.0.0.0/24
+; Bump serial (YYYYMMDDNN) after any change and reload: rndc reload
+
+$TTL 3600
+@   IN SOA  nuc-00.carbide-enclave.kubernerdes.com. hostmaster.carbide-enclave.kubernerdes.com. (
+                2026060401  ; Serial
+                3600        ; Refresh
+                900         ; Retry
+                604800      ; Expire
+                300 )       ; Negative TTL
+
+    IN NS   nuc-00.carbide-enclave.kubernerdes.com.
+
+; Infrastructure hosts
+1   IN PTR  gateway.carbide-enclave.kubernerdes.com.
+10  IN PTR  nuc-00.carbide-enclave.kubernerdes.com.
+11  IN PTR  nas.carbide-enclave.kubernerdes.com.
+
+; Service VIPs
+30  IN PTR  rancher.carbide-enclave.kubernerdes.com.
+98  IN PTR  keycloak.carbide-enclave.kubernerdes.com.
+99  IN PTR  harbor.carbide-enclave.kubernerdes.com.
+100 IN PTR  harvester.carbide-enclave.kubernerdes.com.
+
+; Harvester nodes
+101 IN PTR  nuc-01.carbide-enclave.kubernerdes.com.
+102 IN PTR  nuc-02.carbide-enclave.kubernerdes.com.
+103 IN PTR  nuc-03.carbide-enclave.kubernerdes.com.
+
+; DGX Spark
+251 IN PTR  spark.carbide-enclave.kubernerdes.com.

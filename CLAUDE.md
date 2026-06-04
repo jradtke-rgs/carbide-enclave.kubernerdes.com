@@ -24,6 +24,9 @@ infra/
   hauler/          # Hauler content manifests (.yaml) — one per product layer
   packer/          # VM image builds (SL-Micro + RKE2 baked in)
   terraform/       # Harvester VM provisioning via Harvester provider
+  <hostname>/      # Per-host config backups (e.g. infra/nuc-00/)
+                   # Directory tree mirrors the host filesystem (etc/, srv/, etc.)
+                   # Populated by the host backup pull script
 platform/
   rke2/            # RKE2 server/agent configs for the mgmt cluster
   rancher/         # Rancher Helm values (airgap-mode)
@@ -241,6 +244,9 @@ silently breaks in the enclave.
 | RKE2 CNI | Canal (default) | Sufficient for enclave; Cilium if eBPF needed later |
 | AI serving | vLLM (primary) | GPU-native inference server; Ollama as fallback |
 | Model registry | Harbor OCI artifact | Keeps models inside the same trust boundary |
+| Host config backup layout | `infra/<hostname>/` mirroring filesystem paths | Path = location on host; pull script needs no separate manifest |
+| Docs site | Separate repo (Docusaurus) | Different toolchain, audience, and release cadence from infra |
+| Docs dev workflow | Edit on MBP → git push → git pull on admin node → run script locally | Git is source of truth; admin node drives its own builds |
 
 ---
 

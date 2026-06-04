@@ -1,0 +1,18 @@
+#!ipxe
+# Generic iPXE boot menu — carbide-enclave bastion (nuc-00)
+# TODO: populate with actual boot targets once Hauler fileserver is running
+
+echo carbide-enclave iPXE menu
+echo
+
+menu carbide-enclave boot
+item shell      Drop to iPXE shell
+item reboot     Reboot
+
+choose target && goto ${target}
+
+:shell
+shell
+
+:reboot
+reboot

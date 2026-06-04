@@ -1,0 +1,28 @@
+# Terraform state and variable files
+infra/terraform/**/terraform.tfstate
+infra/terraform/**/terraform.tfstate.backup
+infra/terraform/**/.terraform/
+infra/terraform/**/terraform.tfvars
+!infra/terraform/**/terraform.tfvars.example
+
+# Sensitive environment variables — non-sensitive values go in carbide-enclave.sh
+scripts/env.d/*.secrets.sh
+scripts/env.d/carbide-enclave.secrets.sh
+
+# Kubeconfig and credential files
+*.kubeconfig
+kubeconfig
+.kube/
+
+# Hauler store (large binary artifact cache — not committed)
+infra/hauler/store/
+
+# Packer build artifacts
+infra/packer/**/*.box
+infra/packer/**/*.ova
+infra/packer/**/*.qcow2
+infra/packer/**/output-*/
+infra/packer/**/.vagrant/
+
+# macOS
+.DS_Store

@@ -1,0 +1,32 @@
+; Forward zone — carbide-enclave.kubernerdes.com
+; Bump serial (YYYYMMDDNN) after any change and reload: rndc reload
+
+$TTL 3600
+@   IN SOA  nuc-00.carbide-enclave.kubernerdes.com. hostmaster.carbide-enclave.kubernerdes.com. (
+                2026060401  ; Serial
+                3600        ; Refresh
+                900         ; Retry
+                604800      ; Expire
+                300 )       ; Negative TTL
+
+    IN NS   nuc-00.carbide-enclave.kubernerdes.com.
+
+; ── Infrastructure hosts ─────────────────────────────────────────────────────
+nuc-00          IN A    10.0.0.10       ; Bastion / admin (this host)
+nas             IN A    10.0.0.11       ; NAS / NFS
+
+nuc-01          IN A    10.0.0.101      ; Harvester node 1
+nuc-02          IN A    10.0.0.102      ; Harvester node 2
+nuc-03          IN A    10.0.0.103      ; Harvester node 3
+
+spark           IN A    10.0.0.251      ; NVIDIA DGX Spark (arm64)
+
+; ── Service VIPs ─────────────────────────────────────────────────────────────
+harvester       IN A    10.0.0.100      ; Harvester VIP (set when cluster forms)
+rancher         IN A    10.0.0.30       ; Rancher Manager VIP
+harbor          IN A    10.0.0.99       ; Harbor registry VIP
+keycloak        IN A    10.0.0.98       ; Keycloak OIDC VIP
+
+; ── Wildcard for Harbor project namespaces ───────────────────────────────────
+; Allows harbor.carbide-enclave.kubernerdes.com and any subdomain
+*.harbor        IN A    10.0.0.99

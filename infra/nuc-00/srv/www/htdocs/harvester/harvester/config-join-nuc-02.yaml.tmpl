@@ -1,0 +1,45 @@
+---
+scheme_version: 1
+server_url: https://${HARVESTER_VIP}
+token: ${HARVESTER_TOKEN}
+os:
+  hostname: nuc-02
+  ssh_authorized_keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCozGnmSeEzFQovxzvwgLaQmfE5/eGDfzKHMwofs1rvdef6WD89ubQjh2bFDe69IPGh0kV93QraLUXL1hDa3J+k9LIhr7HqAg365bm3UtY7jIDADmAjDo8yVJ5oiSMvmgUlaw3REFjaMXwQXCddDVWhoWFk/gE1w/14/EbFfSJni9iohl+A76s5GRlVZXSTVb/zYxeQFAlstUaxQVFD8EGNcWI5Ptydgil+hlrA7k16qrkj+5l5muDkRLndcsR/zrpLy2cdNWmI6s/aGQ/IHpUmLf92AAIbzMskK4Asdno1RiuNFybfjoPomo1NlYh6J/VS2uEq4Zg4zWuVbl7yjTRx mansible@kubernerd
+    - ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBADUeWpBo8XY3ePFn/vX2yMjx8MfC3ZO1Jl6t5jZ0hCHwcc9x4Yp4ASXn1epmfEFqmhTJkEKunJafpKnQ0lm1yW/KgA+ew7t+dq2l0yck6/X3cPZlxf8nYIvTXmHf6DYhJ54U26bTaB8iSaXkhRt2RiKWDeqbFp6oJkiWQMtppJuHJlIbA== mansible@nuc-00-02
+  password: ${HARVESTER_PASSWORD}
+  ntp_servers:
+    - 0.suse.pool.ntp.org
+    - 1.suse.pool.ntp.org
+    - 2.suse.pool.ntp.org
+  dns_nameservers:
+    - ${DNS1_IP}
+    - ${DNS2_IP}
+    - 8.8.8.8
+install:
+  skipchecks: true
+  mode: join
+  management_interface:
+    interfaces:
+      - name: ${NIC_NAME}
+        hwAddr: "${NUC02_MAC}"
+    default_route: true
+    method: static
+    ip: ${NUC02_IP}
+    subnet_mask: 255.255.252.0
+    gateway: ${GATEWAY}
+    bond_options:
+      mode: active-backup
+      miimon: 100
+  device: /dev/sda
+  data_disk: /dev/nvme0n1
+  iso_url: http://${ADMIN_IP}/harvester/${HARVESTER_VERSION}/harvester-${HARVESTER_VERSION}-amd64.iso
+sans:
+  - harvester.${BASE_DOMAIN}
+  - ${HARVESTER_VIP}
+  - nuc-01.${BASE_DOMAIN}
+  - nuc-02.${BASE_DOMAIN}
+  - nuc-03.${BASE_DOMAIN}
+  - ${NUC01_IP}
+  - ${NUC02_IP}
+  - ${NUC03_IP}
