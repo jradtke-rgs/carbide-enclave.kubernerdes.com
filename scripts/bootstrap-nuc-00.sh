@@ -56,8 +56,8 @@ install_if_missing() {
 }
 
 detect_primary_iface() {
-    # Return the first non-loopback ethernet interface
-    ip -o link show | awk -F': ' '$2 !~ /^lo/' | head -1 | awk '{print $2}' | sed 's/@.*//'
+    # Return the first non-loopback interface name (no trailing colon)
+    ip -o link show | awk -F': ' '$2 != "lo" {print $2; exit}'
 }
 
 # ── step 1: sudo ─────────────────────────────────────────────────────────────
