@@ -40,7 +40,7 @@ services/
 scripts/
   env.d/           # Per-environment variables (sourced by all scripts)
   seed.sh          # End-to-end Hauler collect → tarball → load → push
-  bootstrap.sh     # Bastion bootstrap (step-ca, DNS, HAProxy, RMT)
+  bootstrap.sh     # Bastion bootstrap (step-ca; HAProxy optional)
 docs/              # Inline reference docs; prose lives in the Docusaurus repo
 ```
 
@@ -134,18 +134,18 @@ silently breaks in the enclave.
 
 ```
 1. Bastion setup
-   ├── DNS (PowerDNS) + DHCP (Kea) — nuc-00-01 / nuc-00-02 VMs
-   ├── HAProxy + Keepalived — nuc-00-03 VM (VIP .93 / .193)  *(optional — Harvester built-in LB may replace this; decision pending)*
-   ├── RMT (Repository Mirroring Tool) — serves SL-Micro RPMs
-   └── step-ca — internal root CA, ACME server
+   ├── DNS + DHCP + NTP + Web + TFTP — nuc-00 (done)
+   ├── step-ca — internal root CA, ACME server
+   └── HAProxy + Keepalived — *(optional; Harvester built-in LB under evaluation)*
+       *(RMT removed — Harvester is ISO-based, no external RPM repo needed)*
 
-2. Hauler collect (bastion, while still connected or via transfer)
+2. Hauler collect (bastion, while still connected or via sneakernet transfer)
    └── hauler store sync → hauler store save → tarball across airgap boundary
 
 3. Hauler serve (airgap side, on bastion)
-   └── hauler store serve registry  (port 5000)
+   └── hauler store serve registry  (port 5000, firewall already open)
 
-4. Harvester bare-metal install (airgap ISO + image from Hauler fileserver)
+4. Harvester bare-metal install (airgap ISO + config from Hauler fileserver / Apache)
    └── 3-node cluster, Longhorn storage, VM network VLAN
 
 5. RKE2 management cluster (3 VMs provisioned by Terraform via Harvester API)
@@ -260,8 +260,8 @@ Track these as GitHub Issues. Current list:
 - [ ] **SL-Micro Packer pipeline** — build SL-Micro VM image with RKE2 baked
       in and upload to Harvester. Ubuntu Packer approach (community) needs
       porting to SL-Micro.
-- [ ] **RMT mirror scope** — determine which SL-Micro module/channel set is
-      needed. RMT config goes in `scripts/bootstrap.sh`.
+- [x] **RMT** — not needed; Harvester ships as a self-contained ISO, and
+      Hauler + Harbor is the artifact pipeline for everything else.
 - [ ] **DGX Spark join method** — decision pending: managed RKE2 agent node
       (integrates with Rancher RBAC) vs standalone K3s (simpler bootstrap).
       Leaning toward RKE2 agent.
