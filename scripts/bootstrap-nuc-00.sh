@@ -169,6 +169,9 @@ configure_web() {
     # Apache2
     install_if_missing apache2
 
+    # Allow mansible to read/write web files owned by wwwrun
+    usermod -a -G wwwrun "${ADMIN_USER}"
+
     # PHP8 packages — matches reference machine (10.10.12.10)
     local php_packages=(
         apache2-mod_php8
