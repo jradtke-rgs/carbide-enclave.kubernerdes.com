@@ -22,7 +22,8 @@
 #   3. Installs and configures BIND (authoritative DNS for carbide-enclave.kubernerdes.com)
 #   4. Installs and configures ISC DHCP server
 #   5. Installs Apache2 and deploys web content
-#   6. Opens required firewall ports (firewalld)
+#   6. Installs and configures tftp-server (for iPXE ipxe.efi delivery)
+#   7. Opens required firewall ports (firewalld)
 #
 # Config files are deployed from the repo mirror at infra/nuc-00/,
 # which maps directly to the host filesystem.
@@ -177,7 +178,22 @@ configure_web() {
     log "web content deployed to /srv/www/htdocs"
 }
 
-# ── step 6: firewall ─────────────────────────────────────────────────────────
+# ── step 6: TFTP (iPXE binary delivery) ──────────────────────────────────────
+
+configure_tftp() {
+    log "configuring TFTP server (tftp-server)"
+    install_if_missing tftp-server
+
+    # TFTP root is /srv/tftpboot — create it and ensure it's world-readable
+    install -d -m 755 -o root -g root /srv/tftpboot
+
+    # Enable and start the tftp socket (systemd socket-activated)
+    systemctl enable --now tftp.socket
+    log "TFTP configured; root: /srv/tftpboot"
+    log "place ipxe.efi at /srv/tftpboot/ipxe.efi once Hauler is seeded"
+}
+
+# ── step 7: firewall ─────────────────────────────────────────────────────────
 
 configure_firewall() {
     log "configuring firewall (firewalld)"
@@ -194,10 +210,15 @@ configure_firewall() {
     firewall-cmd --permanent --zone="${zone}" --add-service=ntp
     firewall-cmd --permanent --zone="${zone}" --add-service=http
     firewall-cmd --permanent --zone="${zone}" --add-service=https
+    firewall-cmd --permanent --zone="${zone}" --add-service=tftp
+    # Hauler registry (port 5000) — no standard firewalld service name
+    firewall-cmd --permanent --zone="${zone}" --add-port=5000/tcp
 
     firewall-cmd --reload
-    log "firewall rules applied:"
+    log "firewall rules applied (services):"
     firewall-cmd --list-services --zone="${zone}"
+    log "firewall rules applied (ports):"
+    firewall-cmd --list-ports --zone="${zone}"
 }
 
 # ── main ─────────────────────────────────────────────────────────────────────
@@ -217,6 +238,8 @@ main() {
     configure_dhcp
     echo
     configure_web
+    echo
+    configure_tftp
     echo
     configure_firewall
     echo
