@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# RGS enclave credentials — machine-local, NEVER committed to git
+#
+# Setup:
+#   install -d -m 700 ~/.config/RGS
+#   cp scripts/env.d/creds.example ~/.config/RGS/creds
+#   chmod 600 ~/.config/RGS/creds
+#   # fill in real values below
+#
+# This file documents every credential variable expected by the enclave
+# scripts. ~/.bashrc.d/RGS sources this file and derives non-secret vars
+# from it (token_id, token_password, HAULER_SOURCE_REPO_URL).
+
+# ── SUSE Manager Tool ────────────────────────────────────────────────────────
+export SMT_USER="smt_username"
+export SMT_PASSWORD="NotAPassword"
+
+# ── RGS Carbide registry ─────────────────────────────────────────────────────
+export CARBIDE_USERNAME="carbide-user"
+export CARBIDE_PASSWORD="NotAPassword"

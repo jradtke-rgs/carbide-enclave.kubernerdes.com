@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# RGS enclave shell environment — safe to commit, contains no credentials.
+#
+# Install:
+#   mkdir -p ~/.bashrc.d
+#   ln -sf /srv/www/htdocs/carbide-enclave.kubernerdes.com/scripts/bashrc.d/RGS \
+#       ~/.bashrc.d/RGS
+#
+# Then ensure ~/.bashrc sources ~/.bashrc.d/:
+#   for f in ~/.bashrc.d/*; do source "$f"; done
+
+# ── credentials ──────────────────────────────────────────────────────────────
+# Source machine-local credentials — never committed, lives outside any repo.
+# See scripts/env.d/creds.example for the expected variables.
+[[ -f "${HOME}/.config/RGS/creds" ]] && source "${HOME}/.config/RGS/creds"
+
+# ── enclave environment ───────────────────────────────────────────────────────
+# Locate the repo — try nuc-00 path first, fall back to common dev paths.
+_find_enclave_repo() {
+    local candidates=(
+        "/srv/www/htdocs/carbide-enclave.kubernerdes.com"
+        "${HOME}/Developer/Repositories/Work/jradtke-rgs/carbide-enclave.kubernerdes.com"
+    )
+    for d in "${candidates[@]}"; do
+        [[ -d "${d}" ]] && echo "${d}" && return
+    done
+}
+ENCLAVE_REPO="$(_find_enclave_repo)"
+unset -f _find_enclave_repo
+
+if [[ -n "${ENCLAVE_REPO}" ]]; then
+    source "${ENCLAVE_REPO}/scripts/env.d/carbide-enclave.sh"
+    export ENCLAVE_REPO
+fi
+
+# ── Carbide / Hauler derived vars ─────────────────────────────────────────────
+# Non-secret — derived from credentials sourced above.
+export CARBIDE_REGISTRY="registry.ranchercarbide.dev"
+export HAULER_SOURCE_REPO_URL="${CARBIDE_REGISTRY}"
+
+# Hauler uses token_id / token_password for registry auth
+export token_id="${CARBIDE_USERNAME:-}"
+export token_password="${CARBIDE_PASSWORD:-}"
