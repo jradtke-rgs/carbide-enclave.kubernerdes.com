@@ -225,8 +225,8 @@ configure_web() {
 # ── step 6: TFTP (iPXE binary delivery) ──────────────────────────────────────
 
 configure_tftp() {
-    log "configuring TFTP server (tftp-server)"
-    install_if_missing tftp-server
+    log "configuring TFTP server (tftp)"
+    install_if_missing tftp
 
     # TFTP root is /srv/tftpboot — create it and ensure it's world-readable
     install -d -m 755 -o root -g root /srv/tftpboot
