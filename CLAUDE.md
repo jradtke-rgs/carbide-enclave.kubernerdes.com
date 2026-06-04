@@ -135,7 +135,7 @@ silently breaks in the enclave.
 ```
 1. Bastion setup
    ├── DNS (PowerDNS) + DHCP (Kea) — nuc-00-01 / nuc-00-02 VMs
-   ├── HAProxy + Keepalived — nuc-00-03 VM (VIP .93 / .193)
+   ├── HAProxy + Keepalived — nuc-00-03 VM (VIP .93 / .193)  *(optional — Harvester built-in LB may replace this; decision pending)*
    ├── RMT (Repository Mirroring Tool) — serves SL-Micro RPMs
    └── step-ca — internal root CA, ACME server
 
@@ -254,6 +254,9 @@ silently breaks in the enclave.
 
 Track these as GitHub Issues. Current list:
 
+- [ ] **HAProxy + Keepalived vs Harvester LB** — Harvester has a built-in load balancer
+      (via kube-vip or MetalLB); evaluate whether it can own the service VIPs (.30, .98,
+      .99, .100) instead of a dedicated HAProxy VM. Decision gates the nuc-00-03 VM build.
 - [ ] **SL-Micro Packer pipeline** — build SL-Micro VM image with RKE2 baked
       in and upload to Harvester. Ubuntu Packer approach (community) needs
       porting to SL-Micro.
