@@ -32,15 +32,16 @@ install:
       miimon: 100
   device: /dev/sda
   data_disk: /dev/nvme0n1
-  iso_url: http://10.0.0.10/harvester/v1.7.1/harvester-v1.7.1-amd64.iso
+  #iso_url: http://10.0.0.10/harvester/v1.7.1/harvester-v1.7.1-amd64.iso
+  iso_url: http://10.0.0.10/harvester/v1.7.1-amd64-govt.1/harvester-v1.7.1-govt.1-amd64.iso
   vip: 10.0.0.100
   vip_mode: static
 sans:
-  - harvester.homelab.kubernerdes.com
+  - harvester.carbide-enclave.kubernerdes.com
   - 10.0.0.100
-  - nuc-01.homelab.kubernerdes.com
-  - nuc-02.homelab.kubernerdes.com
-  - nuc-03.homelab.kubernerdes.com
+  - nuc-01.carbide-enclave.kubernerdes.com
+  - nuc-02.carbide-enclave.kubernerdes.com
+  - nuc-03.carbide-enclave.kubernerdes.com
   - 10.0.0.101
   - 10.0.0.102
   - 10.0.0.103
