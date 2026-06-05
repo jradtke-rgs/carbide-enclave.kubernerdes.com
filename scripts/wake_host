@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+"""
+Wake-on-LAN script for NUC nodes.
+
+Usage: ./wake_host <hostname|all|list>
+
+The active host table is selected by the ENVIRONMENT env var
+(community | carbide | enclave).  Defaults to 'community'.
+"""
+
+import os
+import socket
+import sys
+import time
+
+# Per-environment hostname → MAC tables.
+# forager         → nuc-01/02/03 (Gen10 NUCs, 10.10.15.0/24) via RGS registry
+# carbide-enclave → nuc-01/02/03 (Gen10 NUCs, 10.0.0.0/22) via RGS registry
+# community        → nuc-01/02/03 (Gen13 NUCs, 10.10.14.0/24) public registries
+HOSTS_BY_ENV = {
+    "community": {
+        "nuc-01": "48:21:0b:65:ce:e5",
+        "nuc-02": "48:21:0b:65:c2:c7",
+        "nuc-03": "48:21:0b:5d:7a:e6",
+    },
+    "forager": {
+        "nuc-01": "88:ae:dd:0b:90:70",
+        "nuc-02": "1c:69:7a:ab:23:50",
+        "nuc-03": "88:ae:dd:0b:af:9c",
+    },
+    "carbide-enclave": {
+        "nuc-01": "88:ae:dd:0b:90:70",
+        "nuc-02": "1c:69:7a:ab:23:50",
+        "nuc-03": "88:ae:dd:0b:af:9c",
+    },
+}
+
+_env = os.environ.get("ENVIRONMENT", "community")
+if _env not in HOSTS_BY_ENV:
+    print(f"Warning: unknown ENVIRONMENT '{_env}', defaulting to 'community'")
+    _env = "community"
+
+HOSTS = HOSTS_BY_ENV[_env]
+
+BROADCAST_IP = "255.255.255.255"
+WOL_PORT = 9
+INTER_HOST_DELAY = 20  # seconds to wait between sending WOL packets to each host
+
+
+def create_magic_packet(mac_address: str) -> bytes:
+    """Create a Wake-on-LAN magic packet for the given MAC address."""
+    # Remove common separators and convert to bytes
+    mac = mac_address.replace(":", "").replace("-", "").replace(".", "")
+    if len(mac) != 12:
+        raise ValueError(f"Invalid MAC address: {mac_address}")
+
+    mac_bytes = bytes.fromhex(mac)
+    # Magic packet: 6 bytes of 0xFF followed by MAC address repeated 16 times
+    return b"\xff" * 6 + mac_bytes * 16
+
+
+def send_wol(mac_address: str, hostname: str = None) -> None:
+    """Send a Wake-on-LAN packet to the specified MAC address."""
+    packet = create_magic_packet(mac_address)
+
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.sendto(packet, (BROADCAST_IP, WOL_PORT))
+
+    display_name = f"{hostname} ({mac_address})" if hostname else mac_address
+    print(f"Sent WOL packet to {display_name}")
+
+
+def wake_host(hostname: str) -> None:
+    """Wake a specific host by hostname."""
+    if hostname not in HOSTS:
+        print(f"Error: Unknown host '{hostname}' for environment '{_env}'")
+        print(f"Available hosts: {', '.join(sorted(HOSTS.keys()))}")
+        sys.exit(1)
+
+    send_wol(HOSTS[hostname], hostname)
+
+
+def wake_all() -> None:
+    """Wake all hosts in the lookup table."""
+    hosts = sorted(HOSTS.items())
+    print(f"Waking {len(hosts)} host(s) for environment '{_env}'...")
+    for i, (hostname, mac) in enumerate(hosts):
+        send_wol(mac, hostname)
+        if i < len(hosts) - 1:
+            print(f"Waiting {INTER_HOST_DELAY}s before next host...")
+            time.sleep(INTER_HOST_DELAY)
+
+
+def list_hosts() -> None:
+    """List all available hosts."""
+    print(f"Available hosts (ENVIRONMENT={_env}):")
+    for hostname, mac in sorted(HOSTS.items()):
+        print(f"  {hostname}: {mac}")
+
+
+def main() -> None:
+    if len(sys.argv) != 2:
+        print("Usage: wake_host <hostname|all|list>")
+        print("\nOptions:")
+        print("  <hostname>  Wake a specific host")
+        print("  all         Wake all hosts")
+        print("  list        List available hosts")
+        print("\nSet ENVIRONMENT to select the host table (community|carbide|enclave).")
+        sys.exit(1)
+
+    target = sys.argv[1].lower()
+
+    if target == "all":
+        wake_all()
+    elif target == "list":
+        list_hosts()
+    else:
+        wake_host(target)
+
+
+if __name__ == "__main__":
+    main()
