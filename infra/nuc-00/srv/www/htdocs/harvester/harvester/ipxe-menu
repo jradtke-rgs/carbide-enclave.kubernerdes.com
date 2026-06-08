@@ -70,20 +70,20 @@ sanboot --no-describe --drive 0x80 || goto failed
 # Node-specific parameters
 :nuc-01
 echo Deploying Harvester to nuc-01 (create mode)... static boot
-kernel http://10.0.0.10/harvester/v1.7.1-amd64-govt.1/harvester-v1.7.1-govt.1-vmlinuz-amd64 root=live:http://10.0.0.10/harvester/v1.7.1-amd64-govt.1/harvester-v1.7.1-govt.1-rootfs-amd64.squashfs console=tty1 harvester.install.automatic=true harvester.install.skipchecks=true ip=dhcp rd.cos.disable rd.net.dhcp.retry=3 rd.noverifyssl net.ifnames=1 harvester.install.config_url=http://10.0.0.10/harvester/harvester/config-create-nuc-01.yaml
-initrd http://10.0.0.10/harvester/v1.7.1-amd64-govt.1/harvester-v1.7.1-govt.1-initrd-amd64
+kernel http://10.0.0.10/harvester/v1.7.1-amd64-govt.2/harvester-v1.7.1-govt.2-vmlinuz-amd64 root=live:http://10.0.0.10/harvester/v1.7.1-amd64-govt.2/harvester-v1.7.1-govt.2-rootfs-amd64.squashfs console=tty1 harvester.install.automatic=true harvester.install.skipchecks=true ip=dhcp rd.cos.disable rd.net.dhcp.retry=3 rd.noverifyssl net.ifnames=1 harvester.install.config_url=http://10.0.0.10/harvester/harvester/config-create-nuc-01.yaml
+initrd http://10.0.0.10/harvester/v1.7.1-amd64-govt.2/harvester-v1.7.1-govt.2-initrd-amd64
 boot
 
 :nuc-02
 echo Deploying Harvester to nuc-02 (join mode)...
-kernel http://10.0.0.10/harvester/v1.7.1-amd64-govt.1/harvester-v1.7.1-govt.1-vmlinuz-amd64 root=live:http://10.0.0.10/harvester/v1.7.1-amd64-govt.1/harvester-v1.7.1-govt.1-rootfs-amd64.squashfs console=tty1 harvester.install.automatic=true harvester.install.skipchecks=true ip=dhcp rd.cos.disable rd.net.dhcp.retry=3 rd.noverifyssl net.ifnames=1 harvester.install.config_url=http://10.0.0.10/harvester/harvester/config-join-nuc-02.yaml
-initrd http://10.0.0.10/harvester/v1.7.1-amd64-govt.1/harvester-v1.7.1-govt.1-initrd-amd64
+kernel http://10.0.0.10/harvester/v1.7.1-amd64-govt.2/harvester-v1.7.1-govt.2-vmlinuz-amd64 root=live:http://10.0.0.10/harvester/v1.7.1-amd64-govt.2/harvester-v1.7.1-govt.2-rootfs-amd64.squashfs console=tty1 harvester.install.automatic=true harvester.install.skipchecks=true ip=dhcp rd.cos.disable rd.net.dhcp.retry=3 rd.noverifyssl net.ifnames=1 harvester.install.config_url=http://10.0.0.10/harvester/harvester/config-join-nuc-02.yaml
+initrd http://10.0.0.10/harvester/v1.7.1-amd64-govt.2/harvester-v1.7.1-govt.2-initrd-amd64
 boot
 
 :nuc-03
 echo Deploying Harvester to nuc-03 (join mode)...
-kernel http://10.0.0.10/harvester/v1.7.1-amd64-govt.1/harvester-v1.7.1-govt.1-vmlinuz-amd64 root=live:http://10.0.0.10/harvester/v1.7.1-amd64-govt.1/harvester-v1.7.1-govt.1-rootfs-amd64.squashfs console=tty1 harvester.install.automatic=true harvester.install.skipchecks=true ip=dhcp rd.cos.disable rd.net.dhcp.retry=3 rd.noverifyssl net.ifnames=1 harvester.install.config_url=http://10.0.0.10/harvester/harvester/config-join-nuc-03.yaml
-initrd http://10.0.0.10/harvester/v1.7.1-amd64-govt.1/harvester-v1.7.1-govt.1-initrd-amd64
+kernel http://10.0.0.10/harvester/v1.7.1-amd64-govt.2/harvester-v1.7.1-govt.2-vmlinuz-amd64 root=live:http://10.0.0.10/harvester/v1.7.1-amd64-govt.2/harvester-v1.7.1-govt.2-rootfs-amd64.squashfs console=tty1 harvester.install.automatic=true harvester.install.skipchecks=true ip=dhcp rd.cos.disable rd.net.dhcp.retry=3 rd.noverifyssl net.ifnames=1 harvester.install.config_url=http://10.0.0.10/harvester/harvester/config-join-nuc-03.yaml
+initrd http://10.0.0.10/harvester/v1.7.1-amd64-govt.2/harvester-v1.7.1-govt.2-initrd-amd64
 boot
 
 # Node-specific parameters

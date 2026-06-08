@@ -24,5 +24,8 @@ infra/packer/**/*.qcow2
 infra/packer/**/output-*/
 infra/packer/**/.vagrant/
 
+# Claude Code local settings (tool permissions — local artifact, not repo config)
+.claude/settings.local.json
+
 # macOS
 .DS_Store
