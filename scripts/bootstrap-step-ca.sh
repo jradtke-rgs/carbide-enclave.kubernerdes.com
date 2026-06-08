@@ -36,6 +36,9 @@
 
 set -euo pipefail
 
+# /usr/local/bin is not always in root's PATH when invoked via sudo
+export PATH="/usr/local/bin:${PATH}"
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${REPO_ROOT}/scripts/env.d/carbide-enclave.sh"
 [[ -f "${HOME}/.config/RGS/creds" ]] && source "${HOME}/.config/RGS/creds"
