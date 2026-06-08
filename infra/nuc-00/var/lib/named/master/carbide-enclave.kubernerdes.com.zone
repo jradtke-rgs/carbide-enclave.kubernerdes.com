@@ -13,6 +13,7 @@ $TTL 3600
 
 ; ── Infrastructure hosts ─────────────────────────────────────────────────────
 nuc-00          IN A    10.0.0.10       ; Bastion / admin (this host)
+ca              IN CNAME nuc-00         ; step-ca internal CA (port 8443)
 nas             IN A    10.0.0.11       ; NAS / NFS
 
 nuc-01          IN A    10.0.0.101      ; Harvester node 1
