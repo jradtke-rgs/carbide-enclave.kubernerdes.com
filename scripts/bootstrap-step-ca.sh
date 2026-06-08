@@ -45,7 +45,7 @@ source "${REPO_ROOT}/scripts/env.d/carbide-enclave.sh"
 
 STEPPATH="/etc/step-ca"
 STEP_USER="step"
-CA_NAME="carbide-enclave Root CA"
+CA_NAME="carbide-enclave"              # step-ca appends " Root CA" automatically
 CA_PORT="8443"
 CA_DNS="ca.${DOMAIN}"
 CA_URL="https://${CA_DNS}:${CA_PORT}"
