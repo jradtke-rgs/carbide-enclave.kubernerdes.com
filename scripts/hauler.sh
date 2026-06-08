@@ -41,7 +41,16 @@ install_hauler() {
         return
     fi
     log "installing hauler ${HAULER_VERSION}"
-    curl -sfL https://get.hauler.dev | HAULER_VERSION="${HAULER_VERSION}" bash
+    if [[ $EUID -eq 0 ]]; then
+        curl -sfL https://get.hauler.dev | HAULER_VERSION="${HAULER_VERSION}" bash
+    else
+        # Non-root: install to ~/.local/bin and add to PATH for this session
+        local user_bin="${HOME}/.local/bin"
+        install -d -m 755 "${user_bin}"
+        curl -sfL https://get.hauler.dev \
+            | HAULER_VERSION="${HAULER_VERSION}" HAULER_INSTALL_DIR="${user_bin}" bash
+        export PATH="${user_bin}:${PATH}"
+    fi
 }
 
 # ── manifest generation ───────────────────────────────────────────────────────
