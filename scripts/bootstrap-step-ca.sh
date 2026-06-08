@@ -82,7 +82,6 @@ install_step_binaries() {
     local ca_ver="${STEP_CA_VERSION#v}"
     local tmp
     tmp="$(mktemp -d)"
-    trap 'rm -rf "${tmp}"' RETURN
 
     if command -v step &>/dev/null; then
         log "step CLI already installed: $(step version 2>&1 | head -1)"
@@ -109,6 +108,8 @@ install_step_binaries() {
         install -m 755 "${stepca_bin}" /usr/local/bin/step-ca
         log "step-ca installed: $(step-ca version 2>&1 | head -1)"
     fi
+
+    rm -rf "${tmp}"
 }
 
 # ── step 3: CA initialization ─────────────────────────────────────────────────
