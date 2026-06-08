@@ -42,4 +42,5 @@ HARBOR_CHART_VERSION="1.14.0"        # Helm chart version (≠ app version)
 KEYCLOAK_VERSION="24.0.4"
 HAULER_VERSION="v1.0.0"
 GPU_OPERATOR_VERSION="v24.3.0"
-STEP_CA_VERSION="v0.27.4"
+STEP_CA_VERSION="v0.27.4"             # smallstep/certificates
+STEP_CLI_VERSION="v0.27.4"            # smallstep/cli (separate release cadence)
