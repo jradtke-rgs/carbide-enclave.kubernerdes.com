@@ -238,8 +238,8 @@ spec:
       platforms: [linux/amd64]
     - name: goharbor/harbor-portal:v${HARBOR_VERSION}
       platforms: [linux/amd64]
-    - name: goharbor/harbor-redis:v${HARBOR_VERSION}
-      platforms: [linux/amd64]
+    # harbor-redis not published for v2.11+ — Harbor chart uses bitnami/redis subchart
+    # TODO: audit chart 1.14.0 image refs and add correct redis image before Harbor install
     - name: goharbor/harbor-registryctl:v${HARBOR_VERSION}
       platforms: [linux/amd64]
     - name: goharbor/registry-photon:v${HARBOR_VERSION}
