@@ -40,15 +40,17 @@ install_hauler() {
         log "hauler already installed: $(hauler version 2>/dev/null | head -1)"
         return
     fi
+    # get.hauler.dev prepends its own 'v'; strip ours to avoid vv1.0.0
+    local hauler_ver="${HAULER_VERSION#v}"
     log "installing hauler ${HAULER_VERSION}"
     if [[ $EUID -eq 0 ]]; then
-        curl -sfL https://get.hauler.dev | HAULER_VERSION="${HAULER_VERSION}" bash
+        curl -sfL https://get.hauler.dev | HAULER_VERSION="${hauler_ver}" bash
     else
         # Non-root: install to ~/.local/bin and add to PATH for this session
         local user_bin="${HOME}/.local/bin"
         install -d -m 755 "${user_bin}"
         curl -sfL https://get.hauler.dev \
-            | HAULER_VERSION="${HAULER_VERSION}" HAULER_INSTALL_DIR="${user_bin}" bash
+            | HAULER_VERSION="${hauler_ver}" HAULER_INSTALL_DIR="${user_bin}" bash
         export PATH="${user_bin}:${PATH}"
     fi
 }
