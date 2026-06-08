@@ -186,10 +186,12 @@ EOF
 }
 
 generate_harvester_manifest() {
-    # Harvester version tag without leading 'v' for some asset filenames
     local HV="${HARVESTER_VERSION}"
+    local HVFULL="${HARVESTER_VERSION}-${HARVESTER_EDITION}"
     cat > "${MANIFEST_DIR}/harvester.yaml" <<EOF
-# Harvester ${HARVESTER_VERSION} — ISO and iPXE assets for bare-metal install
+# Harvester ${HVFULL} — ISO and iPXE assets for bare-metal install
+# Government edition assets served from nuc-00 Apache (pre-placed manually)
+# Community release URLs left as reference; govt assets are not on releases.rancher.com
 ---
 apiVersion: content.hauler.cattle.io/v1alpha1
 kind: Files

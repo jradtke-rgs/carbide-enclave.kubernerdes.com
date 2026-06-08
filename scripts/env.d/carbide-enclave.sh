@@ -35,7 +35,8 @@ ADMIN_USER="mansible"
 # Software versions — update here first, scripts inherit
 RKE2_VERSION="v1.30.13+rke2r1"       # last confirmed multi-arch stable
 RANCHER_VERSION="v2.9.3"
-HARVESTER_VERSION="v1.3.2"
+HARVESTER_VERSION="v1.7.1"
+HARVESTER_EDITION="govt.2"            # RGS government edition suffix
 CERT_MANAGER_VERSION="v1.14.5"
 HARBOR_VERSION="2.11.0"              # app / image tag version
 HARBOR_CHART_VERSION="1.14.0"        # Helm chart version (≠ app version)
