@@ -32,6 +32,15 @@ NTP_SERVERS="${BASTION_IP} ${IP_PREFIX}.101 ${IP_PREFIX}.102 ${IP_PREFIX}.103"
 # Admin user
 ADMIN_USER="mansible"
 
+# Harvester node hardware (NUC10i7FNH) — used by DHCP and Harvester install configs
+NUC01_MAC="88:ae:dd:0b:90:70"
+NUC02_MAC="1c:69:7a:ab:23:50"
+NUC03_MAC="88:ae:dd:0b:af:9c"
+HARVESTER_NIC="eno1"
+HARVESTER_OS_DISK="/dev/sda"
+HARVESTER_DATA_DISK="/dev/nvme0n1"
+HARVESTER_SUBNET_MASK="255.255.252.0"
+
 # Software versions — update here first, scripts inherit
 RKE2_VERSION="v1.30.13+rke2r1"       # last confirmed multi-arch stable
 RANCHER_VERSION="v2.9.3"
