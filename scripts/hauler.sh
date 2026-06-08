@@ -322,6 +322,11 @@ cmd_sync() {
         --username "${CARBIDE_USERNAME:?CARBIDE_USERNAME not set — source ~/.config/RGS/creds}" \
         --password "${CARBIDE_PASSWORD:?CARBIDE_PASSWORD not set — source ~/.config/RGS/creds}"
 
+    log "authenticating to Docker Hub (avoid anonymous rate limits)"
+    hauler login docker.io \
+        --username "${DOCKER_USERNAME:?DOCKER_USERNAME not set — source ~/.config/RGS/creds}" \
+        --password "${DOCKER_PASSWORD:?DOCKER_PASSWORD not set — source ~/.config/RGS/creds}"
+
     log "syncing all manifests into Hauler store: ${STORE_DIR}"
     for manifest in "${MANIFEST_DIR}"/*.yaml; do
         log "syncing: $(basename "${manifest}")"

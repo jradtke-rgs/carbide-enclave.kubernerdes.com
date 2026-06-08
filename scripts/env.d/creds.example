@@ -18,3 +18,15 @@ export SMT_PASSWORD="NotAPassword"
 # ── RGS Carbide registry ─────────────────────────────────────────────────────
 export CARBIDE_USERNAME="carbide-user"
 export CARBIDE_PASSWORD="NotAPassword"
+
+# ── Docker Hub ───────────────────────────────────────────────────────────────
+# Required to avoid anonymous pull rate limits (e.g. goharbor/* images)
+# Use a personal access token (read-only scope is sufficient)
+export DOCKER_USERNAME="docker-hub-user"
+export DOCKER_PASSWORD="NotAPassword"
+
+# ── step-ca ──────────────────────────────────────────────────────────────────
+export STEP_CA_PASSWORD="NotAPassword"
+
+# ── Harbor admin ─────────────────────────────────────────────────────────────
+export HARBOR_ADMIN_PASSWORD="NotAPassword"
