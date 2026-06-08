@@ -220,7 +220,7 @@ spec:
   charts:
     - name: harbor
       repoURL: https://helm.goharbor.io
-      version: "${HARBOR_VERSION}"
+      version: "${HARBOR_CHART_VERSION}"
 ---
 apiVersion: content.hauler.cattle.io/v1alpha1
 kind: Images
@@ -327,7 +327,6 @@ cmd_sync() {
         log "syncing: $(basename "${manifest}")"
         hauler store sync \
             --files "${manifest}" \
-            --platform linux/amd64,linux/arm64 \
             --store "${STORE_DIR}"
     done
 
