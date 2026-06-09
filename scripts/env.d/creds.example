@@ -32,5 +32,8 @@ export STEP_CA_PASSWORD="NotAPassword"
 export HARVESTER_TOKEN="NotAToken"          # cluster join token (all nodes must match)
 export HARVESTER_PASSWORD="NotAPassword"    # OS root/rancher password on Harvester nodes
 
+# ── RKE2 management cluster ───────────────────────────────────────────────────
+export RKE2_TOKEN="NotAToken"               # shared secret for RKE2 node registration
+
 # ── Harbor admin ─────────────────────────────────────────────────────────────
 export HARBOR_ADMIN_PASSWORD="NotAPassword"

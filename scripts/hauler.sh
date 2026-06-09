@@ -8,7 +8,8 @@
 #   bash scripts/hauler.sh sync    # pull artifacts from upstream (needs internet)
 #   bash scripts/hauler.sh save    # package store → timestamped tarball in web root
 #   bash scripts/hauler.sh load <tarball>  # load tarball into store (airgap side)
-#   bash scripts/hauler.sh serve   # start Hauler registry on :5000
+#   bash scripts/hauler.sh serve          # start Hauler OCI registry on :5000
+#   bash scripts/hauler.sh serve-files    # start Hauler file server on :8080
 #   bash scripts/hauler.sh push    # push store → Harbor (after Harbor is up)
 #   bash scripts/hauler.sh all     # sync → save in one shot (pre-airgap)
 #
@@ -365,11 +366,22 @@ cmd_load() {
 }
 
 cmd_serve() {
-    log "starting Hauler registry on :5000 (store: ${STORE_DIR})"
+    log "starting Hauler OCI registry on :5000 (store: ${STORE_DIR})"
     log "press Ctrl-C to stop"
     hauler store serve registry \
         --port 5000 \
         --store "${STORE_DIR}"
+}
+
+cmd_serve_files() {
+    local files_dir="${STORE_DIR}-files"
+    install -d -m 755 "${files_dir}"
+    log "starting Hauler file server on :8080 (directory: ${files_dir})"
+    log "press Ctrl-C to stop"
+    hauler store serve fileserver \
+        --port 8080 \
+        --store "${STORE_DIR}" \
+        --directory "${files_dir}"
 }
 
 cmd_push() {
@@ -400,7 +412,8 @@ Commands:
   sync            Pull all artifacts from upstream into the Hauler store
   save            Package store into a timestamped tarball (web-accessible)
   load <tarball>  Load a tarball into the store (airgap side)
-  serve           Start Hauler registry on :5000
+  serve           Start Hauler OCI registry on :5000
+  serve-files     Start Hauler file server on :8080 (for RKE2 binary distribution)
   push            Push store contents to Harbor
   all             sync + save in one shot (pre-airgap convenience)
 
@@ -415,8 +428,9 @@ main() {
         sync)   cmd_sync ;;
         save)   cmd_save ;;
         load)   cmd_load "${2:-}" ;;
-        serve)  cmd_serve ;;
-        push)   cmd_push ;;
+        serve)        cmd_serve ;;
+        serve-files)  cmd_serve_files ;;
+        push)         cmd_push ;;
         all)    cmd_all ;;
         *)      usage ;;
     esac

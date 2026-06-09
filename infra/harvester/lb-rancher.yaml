@@ -1,0 +1,52 @@
+# Harvester LoadBalancer — RKE2 management cluster
+# VIP: 10.0.0.30 (shared with Rancher Manager — no port conflict)
+#   :6443  Kubernetes API server
+#   :9345  RKE2 supervisor (node join endpoint)
+#
+# Apply: KUBECONFIG=~/.kube/carbide-enclave-harvester.kubeconfig kubectl apply -f infra/harvester/lb-rancher.yaml
+---
+apiVersion: loadbalancer.harvesterhci.io/v1beta1
+kind: IPPool
+metadata:
+  name: enclave-vip-pool
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: carbide-enclave
+    app.kubernetes.io/managed-by: manual
+spec:
+  ranges:
+    - subnet: 10.0.0.0/22
+      rangeStart: 10.0.0.30
+      rangeEnd: 10.0.0.30
+      gateway: 10.0.0.1
+---
+apiVersion: loadbalancer.harvesterhci.io/v1beta1
+kind: LoadBalancer
+metadata:
+  name: rancher-api
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: carbide-enclave
+    app.kubernetes.io/managed-by: manual
+spec:
+  workloadType: vm
+  ipam: pool
+  ipPool: enclave-vip-pool
+  listeners:
+    - name: rke2-api
+      protocol: TCP
+      port: 6443
+      backendPort: 6443
+    - name: rke2-supervisor
+      protocol: TCP
+      port: 9345
+      backendPort: 9345
+  backendServerSelector:
+    "tag.harvesterhci.io/role":
+      - "rke2-server"
+  healthCheck:
+    port: 6443
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+    periodSeconds: 10
