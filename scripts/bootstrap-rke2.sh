@@ -59,31 +59,38 @@ vm_scp()  { scp -o StrictHostKeyChecking=no "$1" "mansible@$2:$3"; }
 # ── step 1: Hauler services ───────────────────────────────────────────────────
 
 start_hauler_services() {
+    _wait_for_port() {
+        local url="$1" label="$2" attempt=0
+        until curl -sf "${url}" &>/dev/null; do
+            attempt=$((attempt + 1))
+            [[ ${attempt} -gt 15 ]] && { log "ERROR: ${label} not ready after 30s"; exit 1; }
+            sleep 2
+        done
+        log "${label} up"
+    }
+
     if curl -sf "http://localhost:5000/v2/" &>/dev/null; then
         log "Hauler registry already running on :5000"
     else
         log "starting Hauler OCI registry on :5000"
-        sudo nohup "${HAULER_BIN}" store serve registry \
+        # No sudo needed — ports >1024 don't require root
+        nohup "${HAULER_BIN}" store serve registry \
             --store "${STORE_DIR}" \
             --port 5000 \
             >> /tmp/hauler-registry.log 2>&1 &
-        sleep 3
-        curl -sf "http://localhost:5000/v2/" \
-            || { log "ERROR: Hauler registry failed to start — check /tmp/hauler-registry.log"; exit 1; }
-        log "Hauler registry up"
+        _wait_for_port "http://localhost:5000/v2/" "Hauler registry :5000"
     fi
 
     if curl -sf "http://localhost:8080/" &>/dev/null; then
         log "Hauler file server already running on :8080"
     else
         log "starting Hauler file server on :8080"
-        sudo nohup hauler store serve fileserver \
+        nohup "${HAULER_BIN}" store serve fileserver \
             --store "${STORE_DIR}" \
             --directory "${STORE_DIR}-files" \
             --port 8080 \
             >> /tmp/hauler-fileserver.log 2>&1 &
-        sleep 3
-        log "Hauler file server up"
+        _wait_for_port "http://localhost:8080/" "Hauler file server :8080"
     fi
 }
 
