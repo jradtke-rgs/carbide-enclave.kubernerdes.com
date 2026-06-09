@@ -120,28 +120,16 @@ install_rke2_artifacts() {
     local name="$1" ip="$2"
     log "downloading RKE2 artifacts on ${name} (${ip})"
 
-    # Try both URL patterns — Hauler fileserver path format varies
-    vm_ssh "${ip}" "
-        sudo mkdir -p /var/lib/rancher/rke2/agent/images
-        sudo mkdir -p /var/lib/rancher/rke2/tmp
-        cd /var/lib/rancher/rke2/tmp
+    # Hauler fileserver serves files at root (no /hauler/ prefix)
+    local base="${HAULER_FILES}"
 
-        fetch() {
-            local file=\"\$1\" dest=\"\$2\"
-            curl -sfL \"${HAULER_FILES}/hauler/\${file}\" -o \"\${dest}\" 2>/dev/null || \
-            curl -sfL \"${HAULER_FILES}/\${file}\" -o \"\${dest}\" || \
-            { echo \"ERROR: could not download \${file}\"; exit 1; }
-        }
-
-        sudo sh -c 'fetch() {
-            curl -sfL \"${HAULER_FILES}/hauler/\$1\" -o \"\$2\" 2>/dev/null || \
-            curl -sfL \"${HAULER_FILES}/\$1\" -o \"\$2\"
-        }
-        fetch rke2-install.sh /var/lib/rancher/rke2/tmp/rke2-install.sh
-        fetch rke2.linux-amd64.tar.gz /var/lib/rancher/rke2/tmp/rke2.linux-amd64.tar.gz
-        fetch sha256sum-amd64.txt /var/lib/rancher/rke2/tmp/sha256sum-amd64.txt
-        fetch rke2-images.linux.amd64.tar.zst /var/lib/rancher/rke2/agent/images/rke2-images.linux.amd64.tar.zst'
-    "
+    vm_ssh "${ip}" "sudo mkdir -p /var/lib/rancher/rke2/agent/images /var/lib/rancher/rke2/tmp"
+    vm_ssh "${ip}" "sudo curl -sfL ${base}/rke2-install.sh          -o /var/lib/rancher/rke2/tmp/rke2-install.sh"
+    vm_ssh "${ip}" "sudo curl -sfL ${base}/rke2.linux-amd64.tar.gz  -o /var/lib/rancher/rke2/tmp/rke2.linux-amd64.tar.gz"
+    vm_ssh "${ip}" "sudo curl -sfL ${base}/sha256sum-amd64.txt       -o /var/lib/rancher/rke2/tmp/sha256sum-amd64.txt"
+    vm_ssh "${ip}" "sudo curl -sfL ${base}/rke2-images.linux.amd64.tar.zst \
+        -o /var/lib/rancher/rke2/agent/images/rke2-images.linux.amd64.tar.zst"
+    log "RKE2 artifacts downloaded on ${name}"
 }
 
 # ── step 4: RKE2 config ───────────────────────────────────────────────────────

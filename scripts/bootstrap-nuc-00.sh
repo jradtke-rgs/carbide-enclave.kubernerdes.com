@@ -262,8 +262,9 @@ configure_firewall() {
     firewall-cmd --permanent --zone="${zone}" --add-service=http
     firewall-cmd --permanent --zone="${zone}" --add-service=https
     firewall-cmd --permanent --zone="${zone}" --add-service=tftp
-    # Hauler registry (port 5000) — no standard firewalld service name
+    # Hauler registry (port 5000) and file server (port 8080)
     firewall-cmd --permanent --zone="${zone}" --add-port=5000/tcp
+    firewall-cmd --permanent --zone="${zone}" --add-port=8080/tcp
 
     firewall-cmd --reload
     log "firewall rules applied (services):"
