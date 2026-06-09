@@ -1,7 +1,7 @@
 kubeconfig     = "~/.kube/carbide-enclave-harvester.kubeconfig"
 namespace      = "default"
 ip_prefix      = "10.0.0"
-network_name   = "vlan-mgmt"          # update to match your Harvester VM network
+network_name   = "mgmt"               # Harvester built-in mgmt network (single NIC setup)
 ssh_public_key = "ssh-ed25519 AAAA... mansible@nuc-00"
 admin_user     = "mansible"
 vm_cpu         = 4
