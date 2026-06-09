@@ -144,15 +144,13 @@ write_rke2_config() {
     # Mirror the registry to itself with http:// so containerd uses plain HTTP
     # (insecure_skip_verify alone doesn't fix scheme mismatch).
     # Replace with Harbor TLS config after Harbor is deployed.
+    # Plain http:// endpoint in mirrors is sufficient for HTTP registry.
+    # Do NOT add a configs.tls section — containerd interprets it as HTTPS.
     vm_ssh "${ip}" "sudo tee /etc/rancher/rke2/registries.yaml > /dev/null" <<EOF
 mirrors:
   "${HAULER_REGISTRY}":
     endpoint:
       - "http://${HAULER_REGISTRY}"
-configs:
-  "${HAULER_REGISTRY}":
-    tls:
-      insecure_skip_verify: true
 EOF
 
     local server_line=""
