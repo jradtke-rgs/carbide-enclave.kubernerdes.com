@@ -111,7 +111,7 @@ install_ca_cert() {
         sudo update-ca-certificates
         rm /tmp/carbide-enclave-root-ca.crt
     "
-    rm -f "${tmp_cert}"
+    sudo rm -f "${tmp_cert}"
 }
 
 # ── step 3: RKE2 artifacts ────────────────────────────────────────────────────
