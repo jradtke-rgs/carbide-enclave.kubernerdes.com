@@ -29,8 +29,9 @@
 
 set -euo pipefail
 
-# /usr/local/bin may not be in mansible's PATH under sudo
-export PATH="/usr/local/bin:${PATH}"
+# hauler lives in mansible's local bin; sudo loses this PATH
+HAULER_BIN="${HOME}/.local/bin/hauler"
+[[ -x "/usr/local/bin/hauler" ]] && HAULER_BIN="/usr/local/bin/hauler"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${REPO_ROOT}/scripts/env.d/carbide-enclave.sh"
@@ -62,7 +63,7 @@ start_hauler_services() {
         log "Hauler registry already running on :5000"
     else
         log "starting Hauler OCI registry on :5000"
-        sudo nohup hauler store serve registry \
+        sudo nohup "${HAULER_BIN}" store serve registry \
             --store "${STORE_DIR}" \
             --port 5000 \
             >> /tmp/hauler-registry.log 2>&1 &
