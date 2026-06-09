@@ -3,7 +3,7 @@
 
 $TTL 3600
 @   IN SOA  nuc-00.carbide-enclave.kubernerdes.com. hostmaster.carbide-enclave.kubernerdes.com. (
-                2026060401  ; Serial
+                2026060801  ; Serial
                 3600        ; Refresh
                 900         ; Retry
                 604800      ; Expire
@@ -17,8 +17,11 @@ ca              IN CNAME nuc-00         ; step-ca internal CA (port 8443)
 nas             IN A    10.0.0.11       ; NAS / NFS
 
 nuc-01          IN A    10.0.0.101      ; Harvester node 1
+nuc-01-kvm      IN A    10.0.0.111      ; nuc-01 IP-KVM
 nuc-02          IN A    10.0.0.102      ; Harvester node 2
+nuc-02-kvm      IN A    10.0.0.112      ; nuc-02 IP-KVM
 nuc-03          IN A    10.0.0.103      ; Harvester node 3
+nuc-03-kvm      IN A    10.0.0.113      ; nuc-03 IP-KVM
 
 spark           IN A    10.0.0.251      ; NVIDIA DGX Spark (arm64)
 
