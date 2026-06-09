@@ -13,9 +13,9 @@ provider "harvester" {
 
 locals {
   nodes = {
-    rke2-server-01 = { ip = "${var.ip_prefix}.201", mac = "52:54:00:01:00:01" }
-    rke2-server-02 = { ip = "${var.ip_prefix}.202", mac = "52:54:00:01:00:02" }
-    rke2-server-03 = { ip = "${var.ip_prefix}.203", mac = "52:54:00:01:00:03" }
+    rancher-01 = { ip = "${var.ip_prefix}.31", mac = "52:54:00:01:00:01" }
+    rancher-02 = { ip = "${var.ip_prefix}.32", mac = "52:54:00:01:00:02" }
+    rancher-03 = { ip = "${var.ip_prefix}.33", mac = "52:54:00:01:00:03" }
   }
 }
 

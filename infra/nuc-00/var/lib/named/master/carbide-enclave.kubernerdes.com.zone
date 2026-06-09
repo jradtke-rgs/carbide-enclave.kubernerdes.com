@@ -3,7 +3,7 @@
 
 $TTL 3600
 @   IN SOA  nuc-00.carbide-enclave.kubernerdes.com. hostmaster.carbide-enclave.kubernerdes.com. (
-                2026060901  ; Serial
+                2026060902  ; Serial
                 3600        ; Refresh
                 900         ; Retry
                 604800      ; Expire
@@ -26,9 +26,9 @@ nuc-03-kvm      IN A    10.0.0.113      ; nuc-03 IP-KVM
 spark           IN A    10.0.0.251      ; NVIDIA DGX Spark (arm64)
 
 ; ── RKE2 management cluster VMs ──────────────────────────────────────────────
-rke2-server-01  IN A    10.0.0.31       ; RKE2 server VM 1
-rke2-server-02  IN A    10.0.0.32       ; RKE2 server VM 2
-rke2-server-03  IN A    10.0.0.33       ; RKE2 server VM 3
+rancher-01      IN A    10.0.0.31       ; RKE2 server VM 1
+rancher-02      IN A    10.0.0.32       ; RKE2 server VM 2
+rancher-03      IN A    10.0.0.33       ; RKE2 server VM 3
 
 ; ── Service VIPs ─────────────────────────────────────────────────────────────
 harvester       IN A    10.0.0.100      ; Harvester VIP (set when cluster forms)
