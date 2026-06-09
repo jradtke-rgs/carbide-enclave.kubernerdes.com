@@ -101,12 +101,17 @@ start_hauler_services() {
 install_ca_cert() {
     local name="$1" ip="$2"
     log "installing step-ca root cert on ${name} (${ip})"
-    vm_scp "${STEP_CA_ROOT}" "${ip}" "/tmp/carbide-enclave-root-ca.crt"
+    # Root CA cert is public — copy to /tmp so mansible can read it
+    local tmp_cert="/tmp/carbide-enclave-root-ca.crt"
+    sudo cp "${STEP_CA_ROOT}" "${tmp_cert}"
+    sudo chmod 644 "${tmp_cert}"
+    vm_scp "${tmp_cert}" "${ip}" "/tmp/carbide-enclave-root-ca.crt"
     vm_ssh "${ip}" "
         sudo cp /tmp/carbide-enclave-root-ca.crt /etc/pki/trust/anchors/
         sudo update-ca-certificates
         rm /tmp/carbide-enclave-root-ca.crt
     "
+    rm -f "${tmp_cert}"
 }
 
 # ── step 3: RKE2 artifacts ────────────────────────────────────────────────────
