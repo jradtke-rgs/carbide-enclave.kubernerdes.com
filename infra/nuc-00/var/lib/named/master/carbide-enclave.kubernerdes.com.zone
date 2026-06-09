@@ -3,7 +3,7 @@
 
 $TTL 3600
 @   IN SOA  nuc-00.carbide-enclave.kubernerdes.com. hostmaster.carbide-enclave.kubernerdes.com. (
-                2026060902  ; Serial
+                2026060903  ; Serial
                 3600        ; Refresh
                 900         ; Retry
                 604800      ; Expire
@@ -14,6 +14,7 @@ $TTL 3600
 ; ── Infrastructure hosts ─────────────────────────────────────────────────────
 nuc-00          IN A    10.0.0.10       ; Bastion / admin (this host)
 ca              IN CNAME nuc-00         ; step-ca internal CA (port 8443)
+hauler          IN CNAME nuc-00         ; Hauler registry (port 5000) + fileserver
 nas             IN A    10.0.0.11       ; NAS / NFS
 
 nuc-01          IN A    10.0.0.101      ; Harvester node 1
