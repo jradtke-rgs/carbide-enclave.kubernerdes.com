@@ -85,9 +85,11 @@ start_hauler_services() {
         log "Hauler file server already running on :8080"
     else
         log "starting Hauler file server on :8080"
+        local files_dir="/tmp/hauler-files"
+        mkdir -p "${files_dir}"
         nohup "${HAULER_BIN}" store serve fileserver \
             --store "${STORE_DIR}" \
-            --directory "${STORE_DIR}-files" \
+            --directory "${files_dir}" \
             --port 8080 \
             >> /tmp/hauler-fileserver.log 2>&1 &
         _wait_for_port "http://localhost:8080/" "Hauler file server :8080"
