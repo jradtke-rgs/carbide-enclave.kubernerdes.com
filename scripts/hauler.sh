@@ -100,13 +100,11 @@ spec:
     # Install script
     - path: https://get.rke2.io
       name: rke2-install.sh
-    # amd64 binaries
+    # amd64 binaries — rke2-images tar is NOT on GitHub for v1.30+; use --products instead
     - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/rke2.linux-amd64.tar.gz
-    - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/rke2-images.linux.amd64.tar.zst
     - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/sha256sum-amd64.txt
     # arm64 binaries — required for DGX Spark
     - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/rke2.linux-arm64.tar.gz
-    - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/rke2-images.linux.arm64.tar.zst
     - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/sha256sum-arm64.txt
 EOF
 }
@@ -337,6 +335,11 @@ cmd_sync() {
             --files "${manifest}" \
             --store "${STORE_DIR}"
     done
+
+    log "syncing RKE2 component images via --products (includes pause, etcd, CNI, etc.)"
+    hauler store sync \
+        --products "rke2=${RKE2_VERSION}" \
+        --store "${STORE_DIR}"
 
     log "sync complete — store size: $(du -sh "${STORE_DIR}" | cut -f1)"
 }

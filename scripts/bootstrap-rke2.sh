@@ -140,11 +140,13 @@ write_rke2_config() {
 
     vm_ssh "${ip}" "sudo mkdir -p /etc/rancher/rke2"
 
-    # registries.yaml — Hauler runs HTTP only during bootstrap phase
-    # Replace with Harbor TLS config after Harbor is deployed
+    # registries.yaml — Hauler runs HTTP only during bootstrap phase.
+    # Mirror the registry to itself with http:// so containerd uses plain HTTP
+    # (insecure_skip_verify alone doesn't fix scheme mismatch).
+    # Replace with Harbor TLS config after Harbor is deployed.
     vm_ssh "${ip}" "sudo tee /etc/rancher/rke2/registries.yaml > /dev/null" <<EOF
 mirrors:
-  "*":
+  "${HAULER_REGISTRY}":
     endpoint:
       - "http://${HAULER_REGISTRY}"
 configs:
