@@ -201,8 +201,9 @@ wait_for_node() {
     local name="$1" ip="$2"
     log "waiting for ${name} to be Ready..."
     local attempt=0
+    # RKE2 installs to /opt/rke2/bin on SL-Micro (read-only /usr/local)
     until vm_ssh "${ip}" \
-        "sudo /var/lib/rancher/rke2/bin/kubectl \
+        "sudo /opt/rke2/bin/kubectl \
             --kubeconfig /etc/rancher/rke2/rke2.yaml \
             get node ${name} --no-headers 2>/dev/null | grep -q ' Ready'"; do
         attempt=$((attempt + 1))
@@ -269,6 +270,7 @@ main() {
 
     log "bootstrap complete"
     log "verify: KUBECONFIG=~/.kube/carbide-enclave-rke2.kubeconfig kubectl get nodes"
+    log "rke2 bin path on VMs: /opt/rke2/bin/ (SL-Micro immutable /usr/local)"
     log "next:   cert-manager + StepIssuer, then Harbor"
 }
 
