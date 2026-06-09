@@ -49,9 +49,9 @@ resource "harvester_virtualmachine" "rke2" {
   restart_after_update = true
 
   tags = {
-    "app.kubernetes.io/part-of"    = "carbide-enclave"
-    "app.kubernetes.io/managed-by" = "opentofu"
-    "role"                         = "rke2-server"
+    "part-of"    = "carbide-enclave"
+    "managed-by" = "opentofu"
+    "role"       = "rke2-server"
   }
 
   cpu    = var.vm_cpu
