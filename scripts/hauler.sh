@@ -101,12 +101,16 @@ spec:
     # Install script
     - path: https://get.rke2.io
       name: rke2-install.sh
-    # amd64 binaries — rke2-images tar is NOT on GitHub for v1.30+; use --products instead
+    # amd64 — binary tarball + checksums + image bundles (v1.30+ uses split bundles, not monolithic)
     - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/rke2.linux-amd64.tar.gz
     - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/sha256sum-amd64.txt
-    # arm64 binaries — required for DGX Spark
+    - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/rke2-images-core.linux-amd64.tar.zst
+    - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/rke2-images-canal.linux-amd64.tar.zst
+    # arm64 — required for DGX Spark agent join
     - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/rke2.linux-arm64.tar.gz
     - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/sha256sum-arm64.txt
+    - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/rke2-images-core.linux-arm64.tar.zst
+    - path: https://github.com/rancher/rke2/releases/download/${RKE2_URL_VERSION}/rke2-images-canal.linux-arm64.tar.zst
 EOF
 }
 

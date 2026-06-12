@@ -124,11 +124,30 @@ install_rke2_artifacts() {
     local base="${HAULER_FILES}"
 
     vm_ssh "${ip}" "sudo mkdir -p /var/lib/rancher/rke2/agent/images /var/lib/rancher/rke2/tmp"
-    vm_ssh "${ip}" "sudo curl -sfL ${base}/rke2-install.sh          -o /var/lib/rancher/rke2/tmp/rke2-install.sh"
-    vm_ssh "${ip}" "sudo curl -sfL ${base}/rke2.linux-amd64.tar.gz  -o /var/lib/rancher/rke2/tmp/rke2.linux-amd64.tar.gz"
-    vm_ssh "${ip}" "sudo curl -sfL ${base}/sha256sum-amd64.txt       -o /var/lib/rancher/rke2/tmp/sha256sum-amd64.txt"
-    vm_ssh "${ip}" "sudo curl -sfL ${base}/rke2-images.linux.amd64.tar.zst \
-        -o /var/lib/rancher/rke2/agent/images/rke2-images.linux.amd64.tar.zst"
+
+    # Install script and binary tarball → tmp (used by rke2-install.sh)
+    vm_ssh "${ip}" "sudo curl -fSL ${base}/rke2-install.sh         -o /var/lib/rancher/rke2/tmp/rke2-install.sh"
+    vm_ssh "${ip}" "sudo curl -fSL ${base}/rke2.linux-amd64.tar.gz -o /var/lib/rancher/rke2/tmp/rke2.linux-amd64.tar.gz"
+    vm_ssh "${ip}" "sudo curl -fSL ${base}/sha256sum-amd64.txt      -o /var/lib/rancher/rke2/tmp/sha256sum-amd64.txt"
+
+    # Image bundles → agent/images (v1.30+ uses split bundles: core + CNI)
+    vm_ssh "${ip}" "sudo curl -fSL ${base}/rke2-images-core.linux-amd64.tar.zst \
+        -o /var/lib/rancher/rke2/agent/images/rke2-images-core.linux-amd64.tar.zst"
+    vm_ssh "${ip}" "sudo curl -fSL ${base}/rke2-images-canal.linux-amd64.tar.zst \
+        -o /var/lib/rancher/rke2/agent/images/rke2-images-canal.linux-amd64.tar.zst"
+
+    # Verify image bundles are real zstd archives, not HTML error pages
+    vm_ssh "${ip}" "
+        for f in /var/lib/rancher/rke2/agent/images/rke2-images-*.tar.zst; do
+            result=\$(file \"\$f\" 2>/dev/null)
+            if echo \"\$result\" | grep -qi 'html\|ascii\|text'; then
+                echo \"ERROR: \$f is not a valid zstd archive — file server may have returned an error page\"
+                echo \"  file: \$result\"
+                exit 1
+            fi
+            echo \"[enclave] verified: \$(basename \$f)\"
+        done
+    "
     log "RKE2 artifacts downloaded on ${name}"
 }
 
