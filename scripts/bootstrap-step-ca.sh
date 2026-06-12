@@ -195,7 +195,39 @@ PYEOF
     log "ACME provisioner added"
 }
 
-# ── step 5: systemd unit ──────────────────────────────────────────────────────
+# ── step 5: stage web binaries ───────────────────────────────────────────────
+
+stage_web_binaries() {
+    local cli_ver="${STEP_CLI_VERSION#v}"
+    local web_dir="/srv/www/htdocs/step"
+    local tmp
+    tmp="$(mktemp -d)"
+
+    install -d -m 755 "${web_dir}"
+
+    # amd64 — already installed locally; just copy
+    log "staging step CLI amd64 → ${web_dir}/step-linux-amd64"
+    install -m 755 /usr/local/bin/step "${web_dir}/step-linux-amd64"
+
+    # arm64 — download separately for DGX Spark
+    if [[ -f "${web_dir}/step-linux-arm64" ]]; then
+        log "step CLI arm64 already staged"
+    else
+        log "downloading step CLI arm64 v${cli_ver}"
+        curl -fsSL \
+            "https://github.com/smallstep/cli/releases/download/v${cli_ver}/step_linux_${cli_ver}_arm64.tar.gz" \
+            | tar -xz -C "${tmp}"
+        local step_arm64
+        step_arm64="$(find "${tmp}" -name "step" -type f | head -1)"
+        install -m 755 "${step_arm64}" "${web_dir}/step-linux-arm64"
+        log "step CLI arm64 staged"
+    fi
+
+    rm -rf "${tmp}"
+    log "step CLI binaries available at http://${BASTION_IP}/step/"
+}
+
+# ── step 6: systemd unit ──────────────────────────────────────────────────────
 
 configure_systemd() {
     local unit_file="/etc/systemd/system/step-ca.service"
@@ -231,7 +263,7 @@ EOF
     log "step-ca enabled and started"
 }
 
-# ── step 6: system trust store ────────────────────────────────────────────────
+# ── step 7: system trust store ────────────────────────────────────────────────
 
 trust_root_ca() {
     local trust_anchor="/etc/pki/trust/anchors/carbide-enclave-root-ca.crt"
@@ -245,7 +277,17 @@ trust_root_ca() {
     log "system trust store updated"
 }
 
-# ── step 7: firewall ──────────────────────────────────────────────────────────
+# ── step 8: stage root CA cert to web root ───────────────────────────────────
+
+stage_root_cert() {
+    local web_dir="/srv/www/htdocs/step"
+    local dest="${web_dir}/carbide-enclave-root-ca.crt"
+    install -d -m 755 "${web_dir}"
+    install -m 644 "${STEPPATH}/certs/root_ca.crt" "${dest}"
+    log "root CA cert available at http://${BASTION_IP}/step/carbide-enclave-root-ca.crt"
+}
+
+# ── step 9: firewall ──────────────────────────────────────────────────────────
 
 configure_firewall() {
     if firewall-cmd --list-ports | grep -q "${CA_PORT}/tcp"; then
@@ -272,6 +314,8 @@ main() {
     echo
     install_step_binaries
     echo
+    stage_web_binaries
+    echo
     init_ca
     echo
     add_acme_provisioner
@@ -279,6 +323,8 @@ main() {
     configure_systemd
     echo
     trust_root_ca
+    echo
+    stage_root_cert
     echo
     configure_firewall
     echo

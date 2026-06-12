@@ -39,6 +39,24 @@ CONFIG_URL="http://${BASTION_IP}/harvester/harvester"
 
 log() { echo "[enclave] $*"; }
 
+# ── Root CA cert ──────────────────────────────────────────────────────────────
+# step-ca must be bootstrapped on nuc-00 before generating Harvester configs.
+# The cert is embedded into every node config so Harvester nodes trust the
+# internal CA from first boot — required for Harbor image pulls.
+
+ROOT_CA_CERT_PATH="/etc/step-ca/certs/root_ca.crt"
+ROOT_CA_CERT=""
+
+load_root_ca_cert() {
+    if [[ ! -f "${ROOT_CA_CERT_PATH}" ]]; then
+        echo "ERROR: root CA cert not found at ${ROOT_CA_CERT_PATH}" >&2
+        echo "Run bootstrap-step-ca.sh on nuc-00 before generating Harvester configs." >&2
+        exit 1
+    fi
+    ROOT_CA_CERT="$(cat "${ROOT_CA_CERT_PATH}")"
+    log "loaded root CA cert from ${ROOT_CA_CERT_PATH}"
+}
+
 # ── SSH authorized keys ───────────────────────────────────────────────────────
 # Public keys — not secrets. Add/remove entries here as operators change.
 # These are injected into every Harvester node's authorized_keys at install time.
@@ -84,6 +102,13 @@ install:
   iso_url: ${ISO_BASE_URL}/harvester-${HVFULL}-amd64.iso
   vip: ${HARVESTER_VIP}
   vip_mode: static
+  after_install_chroot_commands:
+    - update-ca-certificates
+  write_files:
+    - path: /etc/pki/trust/anchors/carbide-enclave-root-ca.crt
+      permissions: '0644'
+      content: |
+$(echo "${ROOT_CA_CERT}" | sed 's/^/        /')
 sans:
   - harvester.${DOMAIN}
   - ${HARVESTER_VIP}
@@ -135,6 +160,13 @@ install:
   device: ${HARVESTER_OS_DISK}
   data_disk: ${HARVESTER_DATA_DISK}
   iso_url: ${ISO_BASE_URL}/harvester-${HVFULL}-amd64.iso
+  after_install_chroot_commands:
+    - update-ca-certificates
+  write_files:
+    - path: /etc/pki/trust/anchors/carbide-enclave-root-ca.crt
+      permissions: '0644'
+      content: |
+$(echo "${ROOT_CA_CERT}" | sed 's/^/        /')
 sans:
   - harvester.${DOMAIN}
   - ${HARVESTER_VIP}
@@ -214,6 +246,9 @@ EOF
 main() {
     log "generating Harvester configs (${HVFULL})"
     log "bastion: ${BASTION_IP}  VIP: ${HARVESTER_VIP}  domain: ${DOMAIN}"
+    echo
+
+    load_root_ca_cert
     echo
 
     generate_create_config

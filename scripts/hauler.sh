@@ -69,6 +69,7 @@ generate_manifests() {
     generate_harbor_manifest
     generate_keycloak_manifest
     generate_gpu_operator_manifest
+    generate_step_manifest
 
     log "manifests written:"
     ls -1 "${MANIFEST_DIR}/"
@@ -278,6 +279,23 @@ spec:
       platforms:
         - linux/amd64
         - linux/arm64
+EOF
+}
+
+generate_step_manifest() {
+    local cli_ver="${STEP_CLI_VERSION#v}"
+    cat > "${MANIFEST_DIR}/step.yaml" <<EOF
+# step CLI ${STEP_CLI_VERSION} — required for manual CA trust bootstrap
+# on hosts not covered by an automated bootstrap script (e.g. DGX Spark)
+---
+apiVersion: content.hauler.cattle.io/v1alpha1
+kind: Files
+metadata:
+  name: step-cli
+spec:
+  files:
+    - path: https://github.com/smallstep/cli/releases/download/${STEP_CLI_VERSION}/step_linux_${cli_ver}_amd64.tar.gz
+    - path: https://github.com/smallstep/cli/releases/download/${STEP_CLI_VERSION}/step_linux_${cli_ver}_arm64.tar.gz
 EOF
 }
 
