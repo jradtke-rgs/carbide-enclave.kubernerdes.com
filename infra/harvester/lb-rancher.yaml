@@ -9,7 +9,6 @@ apiVersion: loadbalancer.harvesterhci.io/v1beta1
 kind: IPPool
 metadata:
   name: enclave-vip-pool
-  namespace: default
   labels:
     app.kubernetes.io/part-of: carbide-enclave
     app.kubernetes.io/managed-by: manual
@@ -41,6 +40,14 @@ spec:
       protocol: TCP
       port: 9345
       backendPort: 9345
+    - name: rancher-http
+      protocol: TCP
+      port: 80
+      backendPort: 80
+    - name: rancher-https
+      protocol: TCP
+      port: 443
+      backendPort: 443
   backendServerSelector:
     "tag.harvesterhci.io/role":
       - "rke2-server"
