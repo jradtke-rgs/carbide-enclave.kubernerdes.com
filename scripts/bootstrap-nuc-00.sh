@@ -273,6 +273,13 @@ configure_firewall() {
     firewall-cmd --list-ports --zone="${zone}"
 }
 
+# ── step 8: operator tools ───────────────────────────────────────────────────
+
+install_operator_tools() {
+    log "installing operator tools"
+    install_if_missing sysstat
+}
+
 # ── main ─────────────────────────────────────────────────────────────────────
 
 main() {
@@ -294,6 +301,8 @@ main() {
     configure_tftp
     echo
     configure_firewall
+    echo
+    install_operator_tools
     echo
 
     log "bootstrap complete"
