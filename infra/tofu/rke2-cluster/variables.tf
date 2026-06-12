@@ -7,7 +7,7 @@ variable "kubeconfig" {
 variable "namespace" {
   description = "Harvester namespace for all resources"
   type        = string
-  default     = "default"
+  default     = "vms-rancher"
 }
 
 variable "ip_prefix" {

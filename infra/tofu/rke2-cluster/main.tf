@@ -11,6 +11,10 @@ provider "harvester" {
   kubeconfig = var.kubeconfig
 }
 
+# Prerequisite: create the namespace before applying
+#   KUBECONFIG=~/.kube/carbide-enclave-harvester.kubeconfig \
+#   kubectl create namespace vms-rancher
+
 locals {
   nodes = {
     rancher-01 = { ip = "${var.ip_prefix}.31", mac = "52:54:00:01:00:01" }
@@ -51,6 +55,7 @@ resource "harvester_virtualmachine" "rke2" {
   tags = {
     "part-of"    = "carbide-enclave"
     "managed-by" = "opentofu"
+    "cluster"    = "rancher"
     "role"       = "rke2-server"
   }
 

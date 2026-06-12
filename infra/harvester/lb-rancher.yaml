@@ -3,7 +3,8 @@
 #   :6443  Kubernetes API server
 #   :9345  RKE2 supervisor (node join endpoint)
 #
-# Apply: KUBECONFIG=~/.kube/carbide-enclave-harvester.kubeconfig kubectl apply -f infra/harvester/lb-rancher.yaml
+# Prereq: kubectl create namespace vms-rancher   (if not already created by tofu)
+# Apply:  KUBECONFIG=~/.kube/carbide-enclave-harvester.kubeconfig kubectl apply -f infra/harvester/lb-rancher.yaml
 ---
 apiVersion: loadbalancer.harvesterhci.io/v1beta1
 kind: IPPool
@@ -23,7 +24,7 @@ apiVersion: loadbalancer.harvesterhci.io/v1beta1
 kind: LoadBalancer
 metadata:
   name: rancher-api
-  namespace: default
+  namespace: vms-rancher
   labels:
     app.kubernetes.io/part-of: carbide-enclave
     app.kubernetes.io/managed-by: manual

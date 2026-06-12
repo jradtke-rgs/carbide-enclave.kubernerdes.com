@@ -1,5 +1,5 @@
 kubeconfig     = "~/.kube/carbide-enclave-harvester.kubeconfig"
-namespace      = "default"
+namespace      = "vms-rancher"
 ip_prefix      = "10.0.0"
 network_name   = "mgmt"               # Harvester built-in mgmt network (single NIC setup)
 ssh_public_key = "ssh-ed25519 AAAA... mansible@nuc-00"
