@@ -13,10 +13,10 @@ on the far side of the airgap boundary.
 
 | Host | Role | Model | RAM |
 |---|---|---|---|
-| nuc-00 | Bastion / airgap boundary | NUC13ANHi3 | 32 GB |
-| nuc-01 | Harvester node 1 | NUC10i7FNH | TBD |
-| nuc-02 | Harvester node 2 | NUC10i7FNH | TBD |
-| nuc-03 | Harvester node 3 | NUC10i7FNH | TBD |
+| nuc-00 | Bastion / airgap boundary | NUC10i7FNK | 64 GB |
+| nuc-01 | Harvester node 1 | NUC10i7FNH | 64 GB |
+| nuc-02 | Harvester node 2 | NUC10i7FNH | 64 GB |
+| nuc-03 | Harvester node 3 | NUC10i7FNH | 64 GB |
 | spark | NVIDIA DGX Spark (arm64) | GB10 | 128 GB |
 | nas | NAS / NFS | ASUS X99 | 94 GB |
 
@@ -106,20 +106,30 @@ source scripts/bashrc.d/RGS
 ### 3. Bootstrap sequence
 
 ```
-1. Bastion (nuc-00)       sudo bash scripts/bootstrap-nuc-00.sh
-2. Internal CA            sudo bash scripts/bootstrap-step-ca.sh
-3. Hauler collect         bash scripts/hauler.sh sync
-4. Hauler save            bash scripts/hauler.sh save
-   ── airgap boundary ──────────────────────────────────────
-5. Hauler load            sudo bash scripts/hauler.sh load <tarball>
-6. Harvester install      iPXE boot nuc-01/02/03 from nuc-00
-7. RKE2 cluster           bash scripts/bootstrap-rke2.sh
-8. cert-manager + Harbor  → platform/cert-manager, services/harbor
-9. Keycloak + Rancher     → services/keycloak, platform/rancher
-10. DGX Spark + AI        → services/gpu-operator, services/ai-serving
+1.  Bastion (nuc-00)          sudo bash scripts/bootstrap-nuc-00.sh
+2.  Internal CA (step-ca)     sudo bash scripts/bootstrap-step-ca.sh
+3.  Hauler collect            bash scripts/hauler.sh sync
+4.  Hauler save               bash scripts/hauler.sh save
+    ── airgap boundary ────────────────────────────────────────────────────
+5.  Hauler load               sudo bash scripts/hauler.sh load <tarball>
+6.  Hauler serve              sudo bash scripts/hauler.sh serve
+7.  Harvester install         iPXE boot nuc-01/02/03 from nuc-00
+                              (configs at http://10.0.0.10/harvester/)
+8.  Harvester post-install    KUBECONFIG=~/.kube/carbide-enclave-harvester.kubeconfig \
+                              bash scripts/bootstrap-harvester.sh
+                              (namespaces + CA cert + LoadBalancers)
+9.  Provision RKE2 VMs        cd infra/tofu/rke2-cluster && tofu apply
+10. RKE2 cluster              bash scripts/bootstrap-rke2.sh
+11. cert-manager + StepIssuer → platform/cert-manager/
+12. Harbor                    → services/harbor/
+13. Hauler → Harbor migration bash scripts/hauler.sh push
+14. Keycloak                  → services/keycloak/
+15. Rancher Manager           → platform/rancher/
+16. DGX Spark join            → services/gpu-operator/
+17. AI serving                → services/ai-serving/
 ```
 
-Steps 1–4 require internet access. Steps 5–10 are fully airgapped.
+Steps 1–4 require internet access. Steps 5–17 are fully airgapped.
 
 ---
 
