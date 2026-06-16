@@ -1,0 +1,57 @@
+# Harvester LoadBalancer — General application workloads
+# VIP: 10.0.0.50
+#   :80   HTTP (redirect to HTTPS)
+#   :443  HTTPS (ingress)
+#
+# Prerequisites:
+#   kubectl create namespace vms-apps   (if not created by tofu)
+#   Label target VMs in Harvester UI (or via tofu) with:
+#     harvesterhci.io/vmNamePrefix: apps
+# Apply:
+#   KUBECONFIG=~/.kube/carbide-enclave-harvester.kubeconfig \
+#   kubectl apply -f infra/harvester/lb-apps.yaml
+---
+apiVersion: loadbalancer.harvesterhci.io/v1beta1
+kind: IPPool
+metadata:
+  name: enclave-apps-pool
+  labels:
+    app.kubernetes.io/part-of: carbide-enclave
+    app.kubernetes.io/managed-by: manual
+spec:
+  ranges:
+    - subnet: 10.0.0.0/22
+      rangeStart: 10.0.0.50
+      rangeEnd: 10.0.0.50
+      gateway: 10.0.0.1
+---
+apiVersion: loadbalancer.harvesterhci.io/v1beta1
+kind: LoadBalancer
+metadata:
+  name: apps-ingress
+  namespace: vms-apps
+  labels:
+    app.kubernetes.io/part-of: carbide-enclave
+    app.kubernetes.io/managed-by: manual
+spec:
+  workloadType: vm
+  ipam: pool
+  ipPool: enclave-apps-pool
+  listeners:
+    - name: http
+      protocol: TCP
+      port: 80
+      backendPort: 80
+    - name: https
+      protocol: TCP
+      port: 443
+      backendPort: 443
+  backendServerSelector:
+    "harvesterhci.io/vmNamePrefix":
+      - "apps"
+  healthCheck:
+    port: 443
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+    periodSeconds: 10

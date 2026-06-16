@@ -1,0 +1,52 @@
+# RKE2 node cloud-init — Rancher Manager cluster (SL-Micro guests on Harvester)
+#
+# Bakes in:
+#   1. step-ca root CA → /etc/pki/trust/anchors/ (fetched from bastion at first boot)
+#   2. RKE2 private registry config → Harbor (requires Harbor already running)
+#
+# Usage — embed this as userData in a Harvester VM manifest or OpenTofu resource:
+#
+#   In a Harvester VirtualMachine YAML:
+#     spec:
+#       template:
+#         spec:
+#           volumes:
+#             - name: cloudinitdisk
+#               cloudInitNoCloud:
+#                 userData: |
+#                   <contents of this file>
+#
+#   In OpenTofu (harvester_virtualmachine resource):
+#     cloudinit {
+#       user_data = file("platform/rke2/cloud-init-rancher.yaml")
+#     }
+#
+# Prerequisites:
+#   - step-ca running on nuc-00 with cert served at http://10.0.0.10/step/
+#   - Harbor running at harbor.carbide-enclave.kubernerdes.com
+#   - CA cert already imported into Harbor's trust store (bootstrap-harvester.sh)
+#
+# Note: bootstrap-rke2.sh also installs the CA cert via SSH (step 2) as a belt-and-
+# suspenders measure. The cloud-init here ensures the cert is present before any
+# containerd / RKE2 processes start, avoiding a race.
+---
+#cloud-config
+
+write_files:
+  - path: /etc/rancher/rke2/registries.yaml
+    permissions: '0644'
+    owner: root:root
+    content: |
+      mirrors:
+        "*":
+          endpoint:
+            - "https://harbor.carbide-enclave.kubernerdes.com"
+      configs:
+        "harbor.carbide-enclave.kubernerdes.com":
+          tls:
+            ca_file: /etc/pki/trust/anchors/carbide-enclave-root-ca.crt
+
+runcmd:
+  - mkdir -p /etc/pki/trust/anchors /etc/rancher/rke2
+  - curl -fsSL http://10.0.0.10/step/carbide-enclave-root-ca.crt -o /etc/pki/trust/anchors/carbide-enclave-root-ca.crt
+  - update-ca-certificates

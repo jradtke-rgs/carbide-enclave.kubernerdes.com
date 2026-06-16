@@ -1,0 +1,57 @@
+# Harvester LoadBalancer — Observability stack (Grafana / Prometheus / Alertmanager)
+# VIP: 10.0.0.40
+#   :80   HTTP (redirect to HTTPS)
+#   :443  HTTPS (ingress)
+#
+# Prerequisites:
+#   kubectl create namespace vms-observability   (if not created by tofu)
+#   Label target VMs in Harvester UI (or via tofu) with:
+#     harvesterhci.io/vmNamePrefix: observability
+# Apply:
+#   KUBECONFIG=~/.kube/carbide-enclave-harvester.kubeconfig \
+#   kubectl apply -f infra/harvester/lb-observability.yaml
+---
+apiVersion: loadbalancer.harvesterhci.io/v1beta1
+kind: IPPool
+metadata:
+  name: enclave-observability-pool
+  labels:
+    app.kubernetes.io/part-of: carbide-enclave
+    app.kubernetes.io/managed-by: manual
+spec:
+  ranges:
+    - subnet: 10.0.0.0/22
+      rangeStart: 10.0.0.40
+      rangeEnd: 10.0.0.40
+      gateway: 10.0.0.1
+---
+apiVersion: loadbalancer.harvesterhci.io/v1beta1
+kind: LoadBalancer
+metadata:
+  name: observability-ingress
+  namespace: vms-observability
+  labels:
+    app.kubernetes.io/part-of: carbide-enclave
+    app.kubernetes.io/managed-by: manual
+spec:
+  workloadType: vm
+  ipam: pool
+  ipPool: enclave-observability-pool
+  listeners:
+    - name: http
+      protocol: TCP
+      port: 80
+      backendPort: 80
+    - name: https
+      protocol: TCP
+      port: 443
+      backendPort: 443
+  backendServerSelector:
+    "harvesterhci.io/vmNamePrefix":
+      - "observability"
+  healthCheck:
+    port: 443
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+    periodSeconds: 10
