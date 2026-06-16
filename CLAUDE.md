@@ -74,10 +74,10 @@ Scripts **source** that file; never hardcode IPs or hostnames elsewhere.
 
 | Host | Role | Model | CPU | RAM | NICs |
 |---|---|---|---|---|---|
-| nuc-00 | Bastion / admin | NUC13ANHi3 | i3-1315U | 32 GB | 1 |
-| nuc-01 | Harvester node 1 | NUC10i7FNH | i7-10710U | TBD | 2 |
-| nuc-02 | Harvester node 2 | NUC10i7FNH | i7-10710U | TBD | 2 |
-| nuc-03 | Harvester node 3 | NUC10i7FNH| i7-10710U | TBD | 2 |
+| nuc-00 | Bastion / admin | NUC10i7FNK | i7-10710U | 32 GB | 1 |
+| nuc-01 | Harvester node 1 | NUC10i7FNH | i7-10710U | 64 | 2 |
+| nuc-02 | Harvester node 2 | NUC10i7FNH | i7-10710U | 64 | 2 |
+| nuc-03 | Harvester node 3 | NUC10i7FNH| i7-10710U | 64 | 2 |
 | spark | NVIDIA DGX Spark | GB10 | arm64 | 128 GB | 1 |
 | nas | NAS / NFS | ASUS X99 | Xeon E5-2630 v3 | 94 GB | 1 |
 
