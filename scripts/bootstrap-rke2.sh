@@ -52,7 +52,7 @@ HAULER_FILES="http://hauler.${DOMAIN}:8080"
 STORE_DIR="/var/lib/hauler"
 STEP_CA_ROOT="/etc/step-ca/certs/root_ca.crt"
 
-RKE2_TOKEN="${RKE2_TOKEN:?RKE2_TOKEN not set — add to ~/.config/RGS/creds}"
+RKE2_TOKEN="${RKE2_TOKEN:?RKE2_TOKEN not set — add to ~/config/RGS/creds (or ~/.config/RGS/creds)}"
 
 declare -A NODES=(
     [rancher-01]="${RANCHER_01_IP}"
