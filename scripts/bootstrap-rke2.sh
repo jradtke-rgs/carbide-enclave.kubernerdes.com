@@ -359,12 +359,14 @@ wait_for_node() {
     local name="$1" ip="$2"
     log "waiting for ${name} to be Ready..."
     local attempt=0
-    # kubectl lives in the versioned data dir; use `rke2 kubectl` to avoid
-    # hardcoding the version path (rke2 binary is always at /opt/rke2/bin/rke2)
-    until vm_ssh "${ip}" \
-        "sudo /opt/rke2/bin/rke2 kubectl \
-            --kubeconfig /etc/rancher/rke2/rke2.yaml \
-            get node ${name} --no-headers 2>/dev/null | grep -q ' Ready'"; do
+    # kubectl lives under /var/lib/rancher/rke2/data/<version>/bin/kubectl
+    # (not in /opt/rke2/bin); find it dynamically to avoid version-pinning here
+    until vm_ssh "${ip}" "
+        KUBECTL=\$(find /var/lib/rancher/rke2/data -name kubectl 2>/dev/null | head -1)
+        [[ -n \"\${KUBECTL}\" ]] || exit 1
+        sudo \"\${KUBECTL}\" --kubeconfig /etc/rancher/rke2/rke2.yaml \
+            get node ${name} --no-headers 2>/dev/null | grep -q ' Ready'
+    "; do
         attempt=$((attempt + 1))
         [[ ${attempt} -gt 36 ]] && { log "ERROR: timeout waiting for ${name}"; exit 1; }
         log "  ${name} not ready yet (${attempt}/36, ~${attempt} min elapsed)"
