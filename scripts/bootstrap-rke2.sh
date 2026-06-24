@@ -242,21 +242,24 @@ install_rke2_artifacts() {
 
     log "  verifying image bundle..."
     vm_ssh "${ip}" "
-        shopt -s nullglob
-        bundles=(/var/lib/rancher/rke2/agent/images/rke2-images*.tar.zst)
-        if [[ \${#bundles[@]} -eq 0 ]]; then
-            echo '[enclave] ERROR: no rke2-images*.tar.zst found in agent/images/'
-            exit 1
-        fi
-        for f in \"\${bundles[@]}\"; do
-            result=\$(file \"\$f\" 2>/dev/null)
-            if echo \"\$result\" | grep -qi 'html\|ascii\|text'; then
-                echo \"[enclave] ERROR: \$f is not a valid zstd archive\"
-                echo \"          file output: \$result\"
+        sudo bash -c '
+            shopt -s nullglob
+            bundles=(/var/lib/rancher/rke2/agent/images/rke2-images*.tar.zst)
+            if [[ \${#bundles[@]} -eq 0 ]]; then
+                echo \"[enclave] ERROR: no rke2-images*.tar.zst found in agent/images/\"
                 exit 1
             fi
-            echo \"[enclave]   ok: \$(basename \$f)\"
-        done
+            for f in \"\${bundles[@]}\"; do
+                result=\$(file \"\$f\" 2>/dev/null)
+                if echo \"\$result\" | grep -qi \"html|ascii|text\"; then
+                    echo \"[enclave] ERROR: \$f is not a valid zstd archive\"
+                    echo \"          file: \$result\"
+                    exit 1
+                fi
+                sz=\$(du -sh \"\$f\" | cut -f1)
+                echo \"[enclave]   ok: \$(basename \$f) (\$sz)\"
+            done
+        '
     "
     log "RKE2 artifacts ready on ${name}"
 }
