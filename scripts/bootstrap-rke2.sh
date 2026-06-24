@@ -313,6 +313,12 @@ EOF
 
 uninstall_rke2() {
     local name="$1" ip="$2"
+    # Skip uninstall if RKE2 is already running — idempotent re-runs leave a
+    # healthy cluster alone. Only clean up when the node is not yet active.
+    if vm_ssh "${ip}" "systemctl is-active rke2-server &>/dev/null" 2>/dev/null; then
+        log "RKE2 active on ${name} — skipping uninstall"
+        return
+    fi
     log "uninstalling RKE2 on ${name} (if present)"
     vm_ssh "${ip}" "
         if [[ -x /opt/rke2/bin/rke2-uninstall.sh ]]; then
@@ -353,9 +359,10 @@ wait_for_node() {
     local name="$1" ip="$2"
     log "waiting for ${name} to be Ready..."
     local attempt=0
-    # RKE2 installs to /opt/rke2/bin on SL-Micro (read-only /usr/local)
+    # kubectl lives in the versioned data dir; use `rke2 kubectl` to avoid
+    # hardcoding the version path (rke2 binary is always at /opt/rke2/bin/rke2)
     until vm_ssh "${ip}" \
-        "sudo /opt/rke2/bin/kubectl \
+        "sudo /opt/rke2/bin/rke2 kubectl \
             --kubeconfig /etc/rancher/rke2/rke2.yaml \
             get node ${name} --no-headers 2>/dev/null | grep -q ' Ready'"; do
         attempt=$((attempt + 1))
