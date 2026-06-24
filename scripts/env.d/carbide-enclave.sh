@@ -56,7 +56,7 @@ HARVESTER_DATA_DISK="/dev/nvme0n1"
 HARVESTER_SUBNET_MASK="255.255.252.0"
 
 # Software versions — update here first, scripts inherit
-RKE2_VERSION="v1.32.13+rke2r2"       # latest stable v1.32
+RKE2_VERSION="v1.32.13+rke2r1"       # rke2r2 published with no assets; rke2r1 has 74
 RANCHER_VERSION="v2.9.3"
 HARVESTER_VERSION="v1.7.1"
 HARVESTER_EDITION="govt.2"            # RGS government edition suffix
