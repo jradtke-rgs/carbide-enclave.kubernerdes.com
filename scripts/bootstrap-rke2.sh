@@ -236,9 +236,12 @@ install_rke2_artifacts() {
     _vm_curl "${ip}" "${base}/rke2.linux-amd64.tar.gz" "/var/lib/rancher/rke2/tmp/rke2.linux-amd64.tar.gz"
     _vm_curl "${ip}" "${base}/sha256sum-amd64.txt"     "/var/lib/rancher/rke2/tmp/sha256sum-amd64.txt"
 
-    log "  image bundle → /var/lib/rancher/rke2/agent/images/"
-    _vm_curl "${ip}" "${base}/rke2-images.linux.amd64.tar.zst" \
-        "/var/lib/rancher/rke2/agent/images/rke2-images.linux.amd64.tar.zst"
+    log "  image bundles → /var/lib/rancher/rke2/agent/images/"
+    vm_ssh "${ip}" "sudo rm -f /var/lib/rancher/rke2/agent/images/*.tar.zst"
+    _vm_curl "${ip}" "${base}/rke2-images-core.linux-amd64.tar.zst" \
+        "/var/lib/rancher/rke2/agent/images/rke2-images-core.linux-amd64.tar.zst"
+    _vm_curl "${ip}" "${base}/rke2-images-canal.linux-amd64.tar.zst" \
+        "/var/lib/rancher/rke2/agent/images/rke2-images-canal.linux-amd64.tar.zst"
 
     log "  verifying image bundle..."
     vm_ssh "${ip}" "
@@ -307,6 +310,23 @@ EOF
 }
 
 # ── step 5: install RKE2 ──────────────────────────────────────────────────────
+
+uninstall_rke2() {
+    local name="$1" ip="$2"
+    log "uninstalling RKE2 on ${name} (if present)"
+    vm_ssh "${ip}" "
+        if [[ -x /opt/rke2/bin/rke2-uninstall.sh ]]; then
+            sudo /opt/rke2/bin/rke2-uninstall.sh
+        elif [[ -x /usr/local/bin/rke2-uninstall.sh ]]; then
+            sudo /usr/local/bin/rke2-uninstall.sh
+        else
+            sudo systemctl stop rke2-server 2>/dev/null || true
+            sudo systemctl disable rke2-server 2>/dev/null || true
+        fi
+        sudo rm -rf /var/lib/rancher/rke2 /etc/rancher/rke2
+    " 2>/dev/null || true
+    log "uninstall complete on ${name}"
+}
 
 install_rke2() {
     local name="$1" ip="$2"
@@ -377,6 +397,11 @@ main() {
 
     for name in "${NODE_ORDER[@]}"; do
         install_ca_cert "${name}" "${NODES[${name}]}"
+    done
+    echo
+
+    for name in "${NODE_ORDER[@]}"; do
+        uninstall_rke2 "${name}" "${NODES[${name}]}"
     done
     echo
 
