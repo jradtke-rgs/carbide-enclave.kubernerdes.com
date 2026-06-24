@@ -208,39 +208,50 @@ install_ca_cert() {
 
 # ── step 3: RKE2 artifacts ────────────────────────────────────────────────────
 
+_vm_curl() {
+    # Usage: _vm_curl <ip> <url> <dest>
+    # Downloads <url> to <dest> on the remote VM; logs clearly and fails loudly.
+    local ip="$1" url="$2" dest="$3"
+    local fname; fname=$(basename "${dest}")
+    log "    fetching ${fname}"
+    if ! vm_ssh "${ip}" "sudo curl -fsSL --retry 2 '${url}' -o '${dest}' 2>&1"; then
+        log "ERROR: failed to download ${fname} from ${url}"
+        log "       Run on nuc-00: curl -I ${url}  (check Hauler file server)"
+        exit 1
+    fi
+}
+
 install_rke2_artifacts() {
     local name="$1" ip="$2"
     log "downloading RKE2 artifacts on ${name} (${ip})"
-
-    # Hauler fileserver serves files at root (no /hauler/ prefix)
     local base="${HAULER_FILES}"
 
     vm_ssh "${ip}" "sudo mkdir -p /var/lib/rancher/rke2/agent/images /var/lib/rancher/rke2/tmp"
 
-    # Install script and binary tarball → tmp (used by rke2-install.sh)
-    vm_ssh "${ip}" "sudo curl -fSL ${base}/rke2-install.sh         -o /var/lib/rancher/rke2/tmp/rke2-install.sh"
-    vm_ssh "${ip}" "sudo curl -fSL ${base}/rke2.linux-amd64.tar.gz -o /var/lib/rancher/rke2/tmp/rke2.linux-amd64.tar.gz"
-    vm_ssh "${ip}" "sudo curl -fSL ${base}/sha256sum-amd64.txt      -o /var/lib/rancher/rke2/tmp/sha256sum-amd64.txt"
+    log "  install script + binary tarball → /var/lib/rancher/rke2/tmp/"
+    _vm_curl "${ip}" "${base}/rke2-install.sh"         "/var/lib/rancher/rke2/tmp/rke2-install.sh"
+    _vm_curl "${ip}" "${base}/rke2.linux-amd64.tar.gz" "/var/lib/rancher/rke2/tmp/rke2.linux-amd64.tar.gz"
+    _vm_curl "${ip}" "${base}/sha256sum-amd64.txt"     "/var/lib/rancher/rke2/tmp/sha256sum-amd64.txt"
 
-    # Image bundles → agent/images (v1.30+ uses split bundles: core + CNI)
-    vm_ssh "${ip}" "sudo curl -fSL ${base}/rke2-images-core.linux-amd64.tar.zst \
-        -o /var/lib/rancher/rke2/agent/images/rke2-images-core.linux-amd64.tar.zst"
-    vm_ssh "${ip}" "sudo curl -fSL ${base}/rke2-images-canal.linux-amd64.tar.zst \
-        -o /var/lib/rancher/rke2/agent/images/rke2-images-canal.linux-amd64.tar.zst"
+    log "  image bundles → /var/lib/rancher/rke2/agent/images/"
+    _vm_curl "${ip}" "${base}/rke2-images-core.linux-amd64.tar.zst" \
+        "/var/lib/rancher/rke2/agent/images/rke2-images-core.linux-amd64.tar.zst"
+    _vm_curl "${ip}" "${base}/rke2-images-canal.linux-amd64.tar.zst" \
+        "/var/lib/rancher/rke2/agent/images/rke2-images-canal.linux-amd64.tar.zst"
 
-    # Verify image bundles are real zstd archives, not HTML error pages
+    log "  verifying image bundles..."
     vm_ssh "${ip}" "
         for f in /var/lib/rancher/rke2/agent/images/rke2-images-*.tar.zst; do
             result=\$(file \"\$f\" 2>/dev/null)
             if echo \"\$result\" | grep -qi 'html\|ascii\|text'; then
-                echo \"ERROR: \$f is not a valid zstd archive — file server may have returned an error page\"
-                echo \"  file: \$result\"
+                echo \"[enclave] ERROR: \$f is not a valid zstd archive\"
+                echo \"          file output: \$result\"
                 exit 1
             fi
-            echo \"[enclave] verified: \$(basename \$f)\"
+            echo \"[enclave]   ok: \$(basename \$f)\"
         done
     "
-    log "RKE2 artifacts downloaded on ${name}"
+    log "RKE2 artifacts ready on ${name}"
 }
 
 # ── step 4: RKE2 config ───────────────────────────────────────────────────────
