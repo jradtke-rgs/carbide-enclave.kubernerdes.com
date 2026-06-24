@@ -45,7 +45,7 @@ fi
 SSH_KEY="${SSH_KEY:-${HOME}/.ssh/id_ecdsa-kubernerdes}"
 SSH_USER="${SSH_USER:-sles}"
 HARVESTER_KUBECONFIG="${HARVESTER_KUBECONFIG:-${HOME}/.kube/carbide-enclave-harvester.kubeconfig}"
-HARVESTER_VM_NS="default"
+HARVESTER_VM_NS="vms-rancher"
 
 HAULER_REGISTRY="hauler.${DOMAIN}:5000"
 HAULER_FILES="http://hauler.${DOMAIN}:8080"
@@ -61,48 +61,91 @@ declare -A NODES=(
 )
 NODE_ORDER=(rancher-01 rancher-02 rancher-03)
 
+# VM MAC addresses — set by OpenTofu (infra/tofu/rke2-cluster/main.tf)
+declare -A NODE_MACS=(
+    [rancher-01]="52:54:00:01:00:01"
+    [rancher-02]="52:54:00:01:00:02"
+    [rancher-03]="52:54:00:01:00:03"
+)
+DHCPD_LEASES="/var/lib/dhcpd/db/dhcpd.leases"
+
 log() { echo "[enclave] $*"; }
 
 vm_ssh()  { ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o BatchMode=yes "${SSH_USER}@$1" "${@:2}"; }
 vm_scp()  { scp -i "${SSH_KEY}" -o StrictHostKeyChecking=no "$1" "${SSH_USER}@$2:$3"; }
 
-# ── step 0: resolve VM IPs from Harvester ────────────────────────────────────
+# ── step 0: resolve VM IPs ────────────────────────────────────────────────────
+# Strategy: try Harvester VMI status first (requires qemu-guest-agent in guest);
+# fall back to parsing the dhcpd lease file by MAC address (always works on nuc-00).
 
-resolve_node_ips() {
-    if [[ ! -f "${HARVESTER_KUBECONFIG}" ]]; then
-        log "WARNING: Harvester kubeconfig not found at ${HARVESTER_KUBECONFIG}"
-        log "         Using IPs from env file — may be stale if VMs got DHCP addresses"
-        return
-    fi
-
-    log "resolving node IPs from Harvester VMI status..."
-    local kctl="kubectl --kubeconfig ${HARVESTER_KUBECONFIG} -n ${HARVESTER_VM_NS}"
-
-    for name in "${NODE_ORDER[@]}"; do
-        local ip="" attempt=0
-        log "  querying VMI ${name}..."
-        until [[ -n "${ip}" ]]; do
-            ip=$(${kctl} get vmi "${name}" \
-                    -o jsonpath='{.status.interfaces[0].ipAddress}' 2>/dev/null || true)
-            if [[ -z "${ip}" ]]; then
-                attempt=$((attempt + 1))
-                [[ ${attempt} -gt 24 ]] && {
-                    log "ERROR: no IP for VMI ${name} after 120s — is the VM running?"
-                    exit 1
-                }
-                log "  ${name}: waiting for IP (${attempt}/24)..."
-                sleep 5
-            fi
-        done
-        log "  ${name} → ${ip}"
-        NODES["${name}"]="${ip}"
-    done
-
-    # Update the individual IP vars so downstream code (tls-san, etc.) stays consistent
+_update_ip_vars() {
     RANCHER_01_IP="${NODES[rancher-01]}"
     RANCHER_02_IP="${NODES[rancher-02]}"
     RANCHER_03_IP="${NODES[rancher-03]}"
     log "node IPs: rancher-01=${RANCHER_01_IP}  rancher-02=${RANCHER_02_IP}  rancher-03=${RANCHER_03_IP}"
+}
+
+_resolve_from_vmi() {
+    local kctl="kubectl --kubeconfig ${HARVESTER_KUBECONFIG} -n ${HARVESTER_VM_NS}"
+    local all_resolved=true
+    for name in "${NODE_ORDER[@]}"; do
+        local ip
+        ip=$(${kctl} get vmi "${name}" \
+                -o jsonpath='{.status.interfaces[0].ipAddress}' 2>/dev/null || true)
+        if [[ -n "${ip}" ]]; then
+            log "  ${name} → ${ip} (VMI)"
+            NODES["${name}"]="${ip}"
+        else
+            all_resolved=false
+        fi
+    done
+    [[ "${all_resolved}" == "true" ]]
+}
+
+_resolve_from_dhcpd() {
+    if [[ ! -f "${DHCPD_LEASES}" ]]; then
+        log "WARNING: dhcpd lease file not found at ${DHCPD_LEASES} — using env file IPs"
+        return 1
+    fi
+    log "resolving node IPs from dhcpd leases..."
+    local all_resolved=true
+    for name in "${NODE_ORDER[@]}"; do
+        local mac="${NODE_MACS[${name}]}"
+        # dhcpd.leases is append-only; scan for the last lease matching this MAC
+        local ip
+        ip=$(awk -v mac="${mac}" '
+            /^lease /                                      { cur = $2 }
+            tolower($0) ~ "hardware ethernet " tolower(mac) { found = cur }
+            END                                            { print found }
+        ' "${DHCPD_LEASES}")
+        if [[ -n "${ip}" ]]; then
+            log "  ${name} → ${ip} (dhcpd, mac ${mac})"
+            NODES["${name}"]="${ip}"
+        else
+            log "  WARNING: no dhcpd lease for ${name} (${mac}) — keeping env file IP ${NODES[${name}]}"
+            all_resolved=false
+        fi
+    done
+    [[ "${all_resolved}" == "true" ]]
+}
+
+resolve_node_ips() {
+    if [[ ! -f "${HARVESTER_KUBECONFIG}" ]]; then
+        log "Harvester kubeconfig not found — trying dhcpd leases"
+        _resolve_from_dhcpd || true
+        _update_ip_vars
+        return
+    fi
+
+    log "resolving node IPs (VMI → dhcpd fallback)..."
+    if _resolve_from_vmi; then
+        _update_ip_vars
+        return
+    fi
+
+    log "VMI interfaces empty (no qemu-guest-agent?) — falling back to dhcpd leases"
+    _resolve_from_dhcpd || true
+    _update_ip_vars
 }
 
 # ── step 1: Hauler services ───────────────────────────────────────────────────
