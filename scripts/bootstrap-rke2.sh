@@ -348,9 +348,9 @@ install_rke2() {
              INSTALL_RKE2_ARTIFACT_PATH=/var/lib/rancher/rke2/tmp \
              sh /var/lib/rancher/rke2/tmp/rke2-install.sh
         sudo systemctl enable rke2-server
-        sudo systemctl start rke2-server
+        sudo systemctl start rke2-server || true
     "
-    log "RKE2 started on ${name}"
+    log "RKE2 start initiated on ${name} — wait_for_node will poll readiness"
 }
 
 # ── step 6: wait for node ready ───────────────────────────────────────────────
