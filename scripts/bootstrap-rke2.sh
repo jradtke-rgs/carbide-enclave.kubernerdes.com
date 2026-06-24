@@ -214,9 +214,12 @@ _vm_curl() {
     local ip="$1" url="$2" dest="$3"
     local fname; fname=$(basename "${dest}")
     log "    fetching ${fname}"
-    if ! vm_ssh "${ip}" "sudo curl -fsSL --retry 2 '${url}' -o '${dest}' 2>&1"; then
-        log "ERROR: failed to download ${fname} from ${url}"
-        log "       Run on nuc-00: curl -I ${url}  (check Hauler file server)"
+    local rc=0
+    vm_ssh "${ip}" "sudo curl -fsSL '${url}' -o '${dest}'" || rc=$?
+    if [[ ${rc} -ne 0 ]]; then
+        log "ERROR: failed to download ${fname} (curl exit ${rc})"
+        log "       URL: ${url}"
+        log "       Check available files: curl -s ${HAULER_FILES}/"
         exit 1
     fi
 }
@@ -233,15 +236,19 @@ install_rke2_artifacts() {
     _vm_curl "${ip}" "${base}/rke2.linux-amd64.tar.gz" "/var/lib/rancher/rke2/tmp/rke2.linux-amd64.tar.gz"
     _vm_curl "${ip}" "${base}/sha256sum-amd64.txt"     "/var/lib/rancher/rke2/tmp/sha256sum-amd64.txt"
 
-    log "  image bundles → /var/lib/rancher/rke2/agent/images/"
-    _vm_curl "${ip}" "${base}/rke2-images-core.linux-amd64.tar.zst" \
-        "/var/lib/rancher/rke2/agent/images/rke2-images-core.linux-amd64.tar.zst"
-    _vm_curl "${ip}" "${base}/rke2-images-canal.linux-amd64.tar.zst" \
-        "/var/lib/rancher/rke2/agent/images/rke2-images-canal.linux-amd64.tar.zst"
+    log "  image bundle → /var/lib/rancher/rke2/agent/images/"
+    _vm_curl "${ip}" "${base}/rke2-images.linux.amd64.tar.zst" \
+        "/var/lib/rancher/rke2/agent/images/rke2-images.linux.amd64.tar.zst"
 
-    log "  verifying image bundles..."
+    log "  verifying image bundle..."
     vm_ssh "${ip}" "
-        for f in /var/lib/rancher/rke2/agent/images/rke2-images-*.tar.zst; do
+        shopt -s nullglob
+        bundles=(/var/lib/rancher/rke2/agent/images/rke2-images*.tar.zst)
+        if [[ \${#bundles[@]} -eq 0 ]]; then
+            echo '[enclave] ERROR: no rke2-images*.tar.zst found in agent/images/'
+            exit 1
+        fi
+        for f in \"\${bundles[@]}\"; do
             result=\$(file \"\$f\" 2>/dev/null)
             if echo \"\$result\" | grep -qi 'html\|ascii\|text'; then
                 echo \"[enclave] ERROR: \$f is not a valid zstd archive\"
