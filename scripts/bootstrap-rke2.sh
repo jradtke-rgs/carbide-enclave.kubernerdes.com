@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Bootstrap RKE2 management cluster — carbide-enclave
 #
-# Required privilege: mansible (runs on nuc-00; sudo used only for Hauler serve)
+# Required privilege: sles (sudo rights required on nuc-00 for CA cert step)
+# SSH to VMs:        sles@<ip> with ~/.ssh/id_ecdsa-kubernerdes
 # Run from nuc-00:
 #   bash /srv/www/htdocs/carbide-enclave.kubernerdes.com/scripts/bootstrap-rke2.sh
 #
@@ -10,9 +11,10 @@
 #   - Harvester LB applied (from MBP):
 #       KUBECONFIG=~/.kube/carbide-enclave-harvester.kubeconfig \
 #       kubectl apply -f infra/harvester/lb-rancher.yaml
-#   - RKE2_TOKEN set in ~/.config/RGS/creds
-#   - VMs running: rancher-01/02/03 at 10.0.0.31/32/33
-#   - step-ca running on nuc-00
+#   - RKE2_TOKEN set in ~/config/RGS/creds (or ~/.config/RGS/creds)
+#   - Harvester kubeconfig at ~/.kube/carbide-enclave-harvester.kubeconfig
+#     (VM IPs resolved dynamically from Harvester VMI status)
+#   - step-ca running on nuc-00 (required for CA cert install step)
 #
 # Idempotent: safe to re-run; checks state before each step.
 #
@@ -35,7 +37,15 @@ HAULER_BIN="${HOME}/.local/bin/hauler"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${REPO_ROOT}/scripts/env.d/carbide-enclave.sh"
-[[ -f "${HOME}/.config/RGS/creds" ]] && source "${HOME}/.config/RGS/creds"
+# Accept creds with or without leading dot in path (~/config vs ~/.config)
+if   [[ -f "${HOME}/.config/RGS/creds" ]]; then source "${HOME}/.config/RGS/creds"
+elif [[ -f "${HOME}/config/RGS/creds"  ]]; then source "${HOME}/config/RGS/creds"
+fi
+
+SSH_KEY="${SSH_KEY:-${HOME}/.ssh/id_ecdsa-kubernerdes}"
+SSH_USER="${SSH_USER:-sles}"
+HARVESTER_KUBECONFIG="${HARVESTER_KUBECONFIG:-${HOME}/.kube/carbide-enclave-harvester.kubeconfig}"
+HARVESTER_VM_NS="default"
 
 HAULER_REGISTRY="hauler.${DOMAIN}:5000"
 HAULER_FILES="http://hauler.${DOMAIN}:8080"
@@ -53,8 +63,47 @@ NODE_ORDER=(rancher-01 rancher-02 rancher-03)
 
 log() { echo "[enclave] $*"; }
 
-vm_ssh()  { ssh -o StrictHostKeyChecking=no -o BatchMode=yes mansible@"$1" "${@:2}"; }
-vm_scp()  { scp -o StrictHostKeyChecking=no "$1" "mansible@$2:$3"; }
+vm_ssh()  { ssh -i "${SSH_KEY}" -o StrictHostKeyChecking=no -o BatchMode=yes "${SSH_USER}@$1" "${@:2}"; }
+vm_scp()  { scp -i "${SSH_KEY}" -o StrictHostKeyChecking=no "$1" "${SSH_USER}@$2:$3"; }
+
+# ── step 0: resolve VM IPs from Harvester ────────────────────────────────────
+
+resolve_node_ips() {
+    if [[ ! -f "${HARVESTER_KUBECONFIG}" ]]; then
+        log "WARNING: Harvester kubeconfig not found at ${HARVESTER_KUBECONFIG}"
+        log "         Using IPs from env file — may be stale if VMs got DHCP addresses"
+        return
+    fi
+
+    log "resolving node IPs from Harvester VMI status..."
+    local kctl="kubectl --kubeconfig ${HARVESTER_KUBECONFIG} -n ${HARVESTER_VM_NS}"
+
+    for name in "${NODE_ORDER[@]}"; do
+        local ip="" attempt=0
+        log "  querying VMI ${name}..."
+        until [[ -n "${ip}" ]]; do
+            ip=$(${kctl} get vmi "${name}" \
+                    -o jsonpath='{.status.interfaces[0].ipAddress}' 2>/dev/null || true)
+            if [[ -z "${ip}" ]]; then
+                attempt=$((attempt + 1))
+                [[ ${attempt} -gt 24 ]] && {
+                    log "ERROR: no IP for VMI ${name} after 120s — is the VM running?"
+                    exit 1
+                }
+                log "  ${name}: waiting for IP (${attempt}/24)..."
+                sleep 5
+            fi
+        done
+        log "  ${name} → ${ip}"
+        NODES["${name}"]="${ip}"
+    done
+
+    # Update the individual IP vars so downstream code (tls-san, etc.) stays consistent
+    RANCHER_01_IP="${NODES[rancher-01]}"
+    RANCHER_02_IP="${NODES[rancher-02]}"
+    RANCHER_03_IP="${NODES[rancher-03]}"
+    log "node IPs: rancher-01=${RANCHER_01_IP}  rancher-02=${RANCHER_02_IP}  rancher-03=${RANCHER_03_IP}"
+}
 
 # ── step 1: Hauler services ───────────────────────────────────────────────────
 
@@ -251,9 +300,12 @@ retrieve_kubeconfig() {
 
 main() {
     log "RKE2 bootstrap — ${ENVIRONMENT}"
-    log "nodes:    ${NODE_ORDER[*]}"
     log "VIP:      ${RANCHER_VIP}:6443 / :9345"
     log "registry: ${HAULER_REGISTRY}"
+    echo
+
+    resolve_node_ips
+    log "nodes:    ${NODE_ORDER[*]} (${RANCHER_01_IP} ${RANCHER_02_IP} ${RANCHER_03_IP})"
     echo
 
     start_hauler_services

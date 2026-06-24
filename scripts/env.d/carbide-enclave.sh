@@ -15,6 +15,7 @@ NAS_IP="${IP_PREFIX}.11"
 DGX_IP="${IP_PREFIX}.251"         # NVIDIA DGX Spark (arm64)
 
 # RKE2 management cluster VM IPs (fixed via DHCP MAC binding)
+# bootstrap-rke2.sh overrides these at runtime by querying Harvester VMI status
 RANCHER_01_IP="${IP_PREFIX}.31"
 RANCHER_02_IP="${IP_PREFIX}.32"
 RANCHER_03_IP="${IP_PREFIX}.33"
