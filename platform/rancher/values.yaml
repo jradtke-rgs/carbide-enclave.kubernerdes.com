@@ -1,0 +1,44 @@
+# Rancher Manager Helm values — carbide-enclave airgap install
+# Chart:   https://charts.rancher.com/server-charts/prime  v${RANCHER_VERSION}
+# Applied by: scripts/bootstrap-rancher.sh (via --set flags; this file is reference only)
+#
+# To upgrade (after Harbor is live, switch systemDefaultRegistry):
+#   helm upgrade rancher oci://localhost:5000/rancher \
+#       --version <new-version> --plain-http --reuse-values \
+#       --namespace cattle-system \
+#       --set systemDefaultRegistry=harbor.carbide-enclave.kubernerdes.com
+#
+# After Keycloak is deployed, enable OIDC auth via Rancher UI:
+#   Global Settings → Authentication → Keycloak (SAML or OIDC)
+#   Client ID: rancher, Realm: carbide-enclave
+
+hostname: rancher.carbide-enclave.kubernerdes.com
+replicas: 3
+
+bootstrapPassword: ""   # Set via RANCHER_BOOTSTRAP_PASSWORD in ~/.config/RGS/creds
+
+# Airgap: pull all images from the internal registry
+# Phase 1 (bootstrap): Hauler at localhost:5000
+# Phase 2 (steady-state): Harbor at harbor.carbide-enclave.kubernerdes.com
+systemDefaultRegistry: localhost:5000
+useBundledSystemChart: true
+
+ingress:
+  tls:
+    source: secret    # pre-created by cert-manager; secret: cattle-system/tls-rancher-ingress
+    secretName: tls-rancher-ingress
+
+# Tells Rancher agents that the CA is private (not publicly trusted).
+# The CA cert is distributed via cattle-system/tls-ca (cacerts.pem).
+privateCA: true
+
+# cert-manager is installed separately by bootstrap-rancher.sh before this chart.
+# Do NOT set certmanager.version here — cert-manager is cluster-scoped, not chart-managed.
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

@@ -1,0 +1,16 @@
+# cert-manager Helm values — carbide-enclave
+# Chart:   https://charts.jetstack.io  v${CERT_MANAGER_VERSION}
+# Applied by: scripts/bootstrap-rancher.sh (via --set flags; this file is reference only)
+#
+# ClusterIssuer: step-ca-acme (ACME, HTTP01 via nginx ingress)
+#   Server: https://ca.carbide-enclave.kubernerdes.com:8443/acme/acme/directory
+#   Created by: bootstrap-rancher.sh create_step_ca_issuer()
+
+installCRDs: true
+
+global:
+  leaderElection:
+    namespace: cert-manager
+
+# Logs at level 2 (default 2); raise to 4 for ACME challenge debugging
+# logLevel: 4
