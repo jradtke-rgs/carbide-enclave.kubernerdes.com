@@ -182,7 +182,7 @@ spec:
       platforms:
         - linux/amd64
         - linux/arm64
-    - name: ${CARBIDE_REGISTRY}/rancher/shell:v0.1.24
+    - name: ${CARBIDE_REGISTRY}/rancher/shell:v0.6.3
       platforms:
         - linux/amd64
         - linux/arm64

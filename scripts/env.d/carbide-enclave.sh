@@ -57,7 +57,7 @@ HARVESTER_SUBNET_MASK="255.255.252.0"
 
 # Software versions — update here first, scripts inherit
 RKE2_VERSION="v1.32.13+rke2r1"       # rke2r2 published with no assets; rke2r1 has 74
-RANCHER_VERSION="v2.9.3"
+RANCHER_VERSION="v2.13.6"             # supports k8s 1.32.x (< 1.35.0-0); 2.9.x only covers < 1.31
 HARVESTER_VERSION="v1.7.1"
 HARVESTER_EDITION="govt.2"            # RGS government edition suffix
 CERT_MANAGER_VERSION="v1.14.5"

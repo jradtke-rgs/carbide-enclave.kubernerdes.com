@@ -106,6 +106,46 @@ check_prerequisites() {
     [[ "${ok}" == "true" ]]
 }
 
+# ── step 1a: CoreDNS stub zone ───────────────────────────────────────────────
+#
+# cert-manager's Go DNS resolver uses ndots:5 from the pod's resolv.conf and
+# tries search-domain variants before the absolute name. Combined with
+# CoreDNS's generic forward, this can produce persistent NXDOMAIN errors for
+# external hostnames inside the cluster.  Adding an explicit stub zone for our
+# private domain directs those queries straight to BIND at 10.0.0.10, bypassing
+# the search-domain path entirely.
+
+patch_coredns() {
+    local cm="rke2-coredns-rke2-coredns"
+    local ns="kube-system"
+    local stub_marker="carbide-enclave.kubernerdes.com:53"
+
+    if kubectl get configmap "${cm}" -n "${ns}" -o jsonpath='{.data.Corefile}' \
+            2>/dev/null | grep -q "${stub_marker}"; then
+        log "CoreDNS stub zone already present — skipping"
+        return
+    fi
+
+    log "patching CoreDNS: adding stub zone for ${DOMAIN} → ${BASTION_IP}"
+    kubectl get configmap "${cm}" -n "${ns}" -o json | python3 -c "
+import json, sys
+cm = json.load(sys.stdin)
+stub = '''
+${DOMAIN}:53 {
+    errors
+    cache 30
+    forward . ${BASTION_IP}
+}'''
+cm['data']['Corefile'] = cm['data']['Corefile'].rstrip() + '\n' + stub + '\n'
+print(json.dumps(cm))
+" | kubectl apply -f -
+
+    log "restarting CoreDNS to pick up stub zone"
+    kubectl rollout restart deploy/rke2-coredns-rke2-coredns -n kube-system
+    kubectl rollout status  deploy/rke2-coredns-rke2-coredns -n kube-system --timeout=90s
+    log "CoreDNS restarted"
+}
+
 # ── step 1: Hauler registry ───────────────────────────────────────────────────
 
 start_hauler_registry() {
@@ -256,9 +296,7 @@ spec:
     kind: ClusterIssuer
   dnsNames:
     - rancher.${DOMAIN}
-  ipAddresses:
-    - ${RANCHER_VIP}
-  duration: 2160h     # 90 days (step-ca default ACME cert lifetime)
+  duration: 2160h     # requested; step-ca ACME caps at its own max (typically 24h–90d)
   renewBefore: 360h   # renew 15 days before expiry
 EOF
 
@@ -329,6 +367,9 @@ main() {
     echo
 
     check_prerequisites
+    echo
+
+    patch_coredns
     echo
 
     start_hauler_registry
