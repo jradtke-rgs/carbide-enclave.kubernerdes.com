@@ -126,8 +126,15 @@ start_hauler_registry() {
 # ── step 2: cert-manager ──────────────────────────────────────────────────────
 
 install_cert_manager() {
-    if helm status cert-manager -n cert-manager &>/dev/null 2>&1; then
-        log "cert-manager already installed — skipping"
+    # Check by deployment presence, not helm release — cert-manager may have
+    # been installed via manifests (e.g. as part of an earlier cluster setup).
+    if kctl get deploy cert-manager -n cert-manager &>/dev/null 2>&1; then
+        local ver
+        ver="$(kctl get deploy cert-manager -n cert-manager \
+                -o jsonpath='{.spec.template.spec.containers[0].image}' \
+                2>/dev/null | grep -oP '(?<=:v?)[0-9]+\.[0-9]+\.[0-9]+' || echo unknown)"
+        log "cert-manager already running in cluster (version: ${ver}) — skipping install"
+        log "  deploy: $(kctl get deploy -n cert-manager --no-headers | awk '{print $1}' | tr '\n' ' ')"
         return
     fi
     log "installing cert-manager ${CERT_MANAGER_VERSION}"
