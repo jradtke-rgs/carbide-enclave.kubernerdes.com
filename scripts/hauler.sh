@@ -178,11 +178,39 @@ metadata:
   name: rancher-images
 spec:
   images:
+    # Core Rancher Manager
     - name: ${CARBIDE_REGISTRY}/rancher/rancher:${RANCHER_VERSION}
       platforms:
         - linux/amd64
         - linux/arm64
     - name: ${CARBIDE_REGISTRY}/rancher/shell:v0.6.3
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    # Rancher system charts — deployed automatically on first boot
+    # Versions must match what Rancher ${RANCHER_VERSION} installs
+    - name: ${CARBIDE_REGISTRY}/rancher/rancher-webhook:v0.9.5
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    - name: ${CARBIDE_REGISTRY}/rancher/system-upgrade-controller:v0.17.0
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    - name: ${CARBIDE_REGISTRY}/rancher/turtles:v0.25.4
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    # Fleet (GitOps engine) — used by fleet, fleet-agent, gitjob, helmops
+    - name: ${CARBIDE_REGISTRY}/rancher/fleet:v0.14.6
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    - name: ${CARBIDE_REGISTRY}/rancher/fleet-agent:v0.14.6
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    - name: ${CARBIDE_REGISTRY}/rancher/gitjob:v0.1.108
       platforms:
         - linux/amd64
         - linux/arm64
