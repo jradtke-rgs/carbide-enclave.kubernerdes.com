@@ -165,10 +165,12 @@ start_hauler_services() {
         log "Hauler registry already running on :5000"
     else
         log "starting Hauler OCI registry on :5000"
-        # No sudo needed — ports >1024 don't require root
-        nohup "${HAULER_BIN}" store serve registry \
-            --store "${STORE_DIR}" \
+        # --store is a global flag (before the subcommand); --directory is a local flag
+        local registry_dir="/var/lib/hauler-registry-backend"
+        mkdir -p "${registry_dir}"
+        nohup "${HAULER_BIN}" --store "${STORE_DIR}" store serve registry \
             --port 5000 \
+            --directory "${registry_dir}" \
             >> /tmp/hauler-registry.log 2>&1 &
         _wait_for_port "http://localhost:5000/v2/" "Hauler registry :5000"
     fi
@@ -179,8 +181,7 @@ start_hauler_services() {
         log "starting Hauler file server on :8080"
         local files_dir="/tmp/hauler-files"
         mkdir -p "${files_dir}"
-        nohup "${HAULER_BIN}" store serve fileserver \
-            --store "${STORE_DIR}" \
+        nohup "${HAULER_BIN}" --store "${STORE_DIR}" store serve fileserver \
             --directory "${files_dir}" \
             --port 8080 \
             >> /tmp/hauler-fileserver.log 2>&1 &

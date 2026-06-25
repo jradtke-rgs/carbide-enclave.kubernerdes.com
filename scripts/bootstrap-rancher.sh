@@ -49,8 +49,15 @@ RKE2_KUBECONFIG="${HOME}/.kube/carbide-enclave-rancher.kubeconfig"
 export KUBECONFIG="${RKE2_KUBECONFIG}"
 
 STORE_DIR="/var/lib/hauler"
-# Use localhost to avoid hostname TLS negotiation against the plain-HTTP Hauler registry
-HAULER_REGISTRY="localhost:5000"
+HAULER_REGISTRY_BACKEND="/var/lib/hauler-registry-backend"
+
+# Two registry references for two different consumers:
+#   HAULER_REGISTRY_LOCAL  — used by helm (runs on nuc-00); localhost avoids TLS on plain-HTTP registry
+#   HAULER_REGISTRY_REMOTE — used by systemDefaultRegistry (consumed by containerd on the VMs);
+#                            must match the mirror endpoint in /etc/rancher/rke2/registries.yaml
+HAULER_REGISTRY_LOCAL="localhost:5000"
+HAULER_REGISTRY_REMOTE="hauler.${DOMAIN}:5000"
+
 # Hauler stores charts under the hauler/ namespace in its OCI registry
 HAULER_CHART_PREFIX="hauler"
 # Rancher chart tag has no 'v' prefix (e.g. 2.9.3, not v2.9.3)
@@ -154,14 +161,16 @@ start_hauler_registry() {
         return
     fi
     log "starting Hauler OCI registry on :5000"
-    nohup "${HAULER_BIN}" store serve registry \
-        --store "${STORE_DIR}" \
+    mkdir -p "${HAULER_REGISTRY_BACKEND}"
+    # --store is a global flag (before the subcommand); --directory is a local flag
+    nohup "${HAULER_BIN}" --store "${STORE_DIR}" store serve registry \
         --port 5000 \
+        --directory "${HAULER_REGISTRY_BACKEND}" \
         >> /tmp/hauler-registry.log 2>&1 &
     local attempt=0
     until curl -sf "http://localhost:5000/v2/" &>/dev/null; do
         attempt=$((attempt + 1))
-        [[ ${attempt} -gt 15 ]] && { log "ERROR: Hauler registry not ready after 30s"; exit 1; }
+        [[ ${attempt} -gt 30 ]] && { log "ERROR: Hauler registry not ready after 60s"; exit 1; }
         sleep 2
     done
     log "Hauler registry up"
@@ -185,7 +194,7 @@ install_cert_manager() {
     kctl create namespace cert-manager --dry-run=client -o yaml | kctl apply -f -
 
     helm upgrade --install cert-manager \
-        "oci://${HAULER_REGISTRY}/${HAULER_CHART_PREFIX}/cert-manager" \
+        "oci://${HAULER_REGISTRY_LOCAL}/${HAULER_CHART_PREFIX}/cert-manager" \
         --version "${CERT_MANAGER_VERSION}" \
         --plain-http \
         --namespace cert-manager \
@@ -330,14 +339,14 @@ install_rancher() {
     log "installing Rancher Manager ${RANCHER_VERSION}"
 
     helm upgrade --install rancher \
-        "oci://${HAULER_REGISTRY}/${HAULER_CHART_PREFIX}/rancher" \
+        "oci://${HAULER_REGISTRY_LOCAL}/${HAULER_CHART_PREFIX}/rancher" \
         --version "${RANCHER_CHART_VERSION}" \
         --plain-http \
         --namespace cattle-system \
         --set hostname="rancher.${DOMAIN}" \
         --set replicas=3 \
         --set bootstrapPassword="${RANCHER_BOOTSTRAP_PASSWORD}" \
-        --set systemDefaultRegistry="${HAULER_REGISTRY}" \
+        --set systemDefaultRegistry="${HAULER_REGISTRY_REMOTE}" \
         --set useBundledSystemChart=true \
         --set ingress.tls.source=secret \
         --set privateCA=true \
@@ -396,10 +405,11 @@ main() {
     log "Bootstrap password: ${RANCHER_BOOTSTRAP_PASSWORD}"
     echo
     log "After Harbor is deployed, switch the system-default-registry:"
-    log "  helm upgrade rancher oci://${HAULER_REGISTRY}/${HAULER_CHART_PREFIX}/rancher \\"
+    log "  helm upgrade rancher oci://${HAULER_REGISTRY_LOCAL}/${HAULER_CHART_PREFIX}/rancher \\"
     log "      --version ${RANCHER_CHART_VERSION} --plain-http --reuse-values \\"
     log "      --namespace cattle-system \\"
-    log "      --set systemDefaultRegistry=harbor.${DOMAIN}"
+    log "      --set systemDefaultRegistry=harbor.${DOMAIN} \\"
+    log "      --set privateCA=true"
     echo
     log "Verify:"
     log "  KUBECONFIG=${RKE2_KUBECONFIG} kubectl get pods -n cattle-system"
