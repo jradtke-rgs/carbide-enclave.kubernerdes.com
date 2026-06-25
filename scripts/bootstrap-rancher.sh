@@ -49,7 +49,7 @@ RKE2_KUBECONFIG="${HOME}/.kube/carbide-enclave-rancher.kubeconfig"
 export KUBECONFIG="${RKE2_KUBECONFIG}"
 
 STORE_DIR="/var/lib/hauler"
-HAULER_REGISTRY_BACKEND="/var/lib/hauler-registry-backend"
+HAULER_REGISTRY_BACKEND="/tmp/hauler-registry-backend"
 
 # Two registry references for two different consumers:
 #   HAULER_REGISTRY_LOCAL  — used by helm (runs on nuc-00); localhost avoids TLS on plain-HTTP registry

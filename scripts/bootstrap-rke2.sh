@@ -166,7 +166,7 @@ start_hauler_services() {
     else
         log "starting Hauler OCI registry on :5000"
         # --store is a global flag (before the subcommand); --directory is a local flag
-        local registry_dir="/var/lib/hauler-registry-backend"
+        local registry_dir="/tmp/hauler-registry-backend"
         mkdir -p "${registry_dir}"
         nohup "${HAULER_BIN}" --store "${STORE_DIR}" store serve registry \
             --port 5000 \
