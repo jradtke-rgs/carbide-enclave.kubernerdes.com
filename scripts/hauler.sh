@@ -214,6 +214,16 @@ spec:
       platforms:
         - linux/amd64
         - linux/arm64
+    # Turtles (CAPI integration) — deployed by rancher-turtles operator
+    - name: ${CARBIDE_REGISTRY}/rancher/cluster-api-controller:v1.10.6
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    # kuberlr-kubectl — used by clusterctl cleanup jobs
+    - name: ${CARBIDE_REGISTRY}/rancher/kuberlr-kubectl:v5.0.0
+      platforms:
+        - linux/amd64
+        - linux/arm64
 EOF
 }
 
