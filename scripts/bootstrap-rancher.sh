@@ -51,6 +51,10 @@ export KUBECONFIG="${RKE2_KUBECONFIG}"
 STORE_DIR="/var/lib/hauler"
 # Use localhost to avoid hostname TLS negotiation against the plain-HTTP Hauler registry
 HAULER_REGISTRY="localhost:5000"
+# Hauler stores charts under the hauler/ namespace in its OCI registry
+HAULER_CHART_PREFIX="hauler"
+# Rancher chart tag has no 'v' prefix (e.g. 2.9.3, not v2.9.3)
+RANCHER_CHART_VERSION="${RANCHER_VERSION#v}"
 
 STEP_CA_ROOT="/etc/step-ca/certs/root_ca.crt"
 STEP_CA_URL="https://ca.${DOMAIN}:8443"
@@ -141,7 +145,7 @@ install_cert_manager() {
     kctl create namespace cert-manager --dry-run=client -o yaml | kctl apply -f -
 
     helm upgrade --install cert-manager \
-        "oci://${HAULER_REGISTRY}/cert-manager" \
+        "oci://${HAULER_REGISTRY}/${HAULER_CHART_PREFIX}/cert-manager" \
         --version "${CERT_MANAGER_VERSION}" \
         --plain-http \
         --namespace cert-manager \
@@ -288,8 +292,8 @@ install_rancher() {
     log "installing Rancher Manager ${RANCHER_VERSION}"
 
     helm upgrade --install rancher \
-        "oci://${HAULER_REGISTRY}/rancher" \
-        --version "${RANCHER_VERSION}" \
+        "oci://${HAULER_REGISTRY}/${HAULER_CHART_PREFIX}/rancher" \
+        --version "${RANCHER_CHART_VERSION}" \
         --plain-http \
         --namespace cattle-system \
         --set hostname="rancher.${DOMAIN}" \
@@ -351,8 +355,8 @@ main() {
     log "Bootstrap password: ${RANCHER_BOOTSTRAP_PASSWORD}"
     echo
     log "After Harbor is deployed, switch the system-default-registry:"
-    log "  helm upgrade rancher oci://${HAULER_REGISTRY}/rancher \\"
-    log "      --version ${RANCHER_VERSION} --plain-http --reuse-values \\"
+    log "  helm upgrade rancher oci://${HAULER_REGISTRY}/${HAULER_CHART_PREFIX}/rancher \\"
+    log "      --version ${RANCHER_CHART_VERSION} --plain-http --reuse-values \\"
     log "      --namespace cattle-system \\"
     log "      --set systemDefaultRegistry=harbor.${DOMAIN}"
     echo
