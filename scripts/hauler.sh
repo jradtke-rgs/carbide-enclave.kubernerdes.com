@@ -383,10 +383,10 @@ cmd_sync() {
         --username "${CARBIDE_USERNAME:?CARBIDE_USERNAME not set — source ~/.config/RGS/creds}" \
         --password "${CARBIDE_PASSWORD:?CARBIDE_PASSWORD not set — source ~/.config/RGS/creds}"
 
-    log "authenticating to Carbide Gov registry (required for --products)"
-    hauler login rgcrprod.azurecr.us \
-        --username "${CARBIDE_USERNAME}" \
-        --password "${CARBIDE_PASSWORD}"
+    log "authenticating to Carbide product registry (required for --products)"
+    hauler login registry.ranchercarbide.dev \
+        --username "${CARBIDE_USERNAME:?CARBIDE_USERNAME not set — source ~/.config/RGS/creds}" \
+        --password "${CARBIDE_PASSWORD:?CARBIDE_PASSWORD not set — source ~/.config/RGS/creds}"
 
     log "authenticating to Docker Hub (avoid anonymous rate limits)"
     hauler login docker.io \
@@ -401,9 +401,10 @@ cmd_sync() {
             --store "${STORE_DIR}"
     done
 
-    log "syncing RKE2 component images via --products (includes pause, etcd, CNI, etc.)"
+    log "syncing Rancher + RKE2 component images via --products"
     hauler store sync \
-        --products "rke2=${RKE2_VERSION}" \
+        --products "rancher=${RANCHER_VERSION},rke2=${RKE2_VERSION}" \
+        --product-registry "registry.ranchercarbide.dev" \
         --store "${STORE_DIR}"
 
     log "sync complete — store size: $(du -sh "${STORE_DIR}" | cut -f1)"
