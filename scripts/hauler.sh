@@ -37,12 +37,14 @@ log() { echo "[hauler] $*"; }
 # ── install ───────────────────────────────────────────────────────────────────
 
 install_hauler() {
-    if command -v hauler &>/dev/null; then
-        log "hauler already installed: $(hauler version 2>/dev/null | head -1)"
+    local hauler_ver="${HAULER_VERSION#v}"
+    local installed_ver
+    installed_ver="$(hauler version 2>/dev/null | grep -oP 'GitVersion:\s+\K\S+' | sed 's/^v//')"
+    if [[ "${installed_ver}" == "${hauler_ver}" ]]; then
+        log "hauler ${HAULER_VERSION} already installed"
         return
     fi
-    # get.hauler.dev prepends its own 'v'; strip ours to avoid vv1.0.0
-    local hauler_ver="${HAULER_VERSION#v}"
+    [[ -n "${installed_ver}" ]] && log "upgrading hauler ${installed_ver} → ${hauler_ver}"
     log "installing hauler ${HAULER_VERSION}"
     if [[ $EUID -eq 0 ]]; then
         curl -sfL https://get.hauler.dev | HAULER_VERSION="${hauler_ver}" bash
