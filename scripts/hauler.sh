@@ -399,7 +399,7 @@ cmd_sync() {
     for manifest in "${MANIFEST_DIR}"/*.yaml; do
         log "syncing: $(basename "${manifest}")"
         hauler store sync \
-            --files "${manifest}" \
+            --filename "${manifest}" \
             --store "${STORE_DIR}"
     done
 
