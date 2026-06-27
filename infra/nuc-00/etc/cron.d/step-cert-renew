@@ -1,0 +1,23 @@
+# step-ca certificate renewal for host-level (non-Kubernetes) services on nuc-00
+#
+# Runs every 6 h. step ca renew only acts when the cert is within its renewal
+# window (~8 h remaining for a 24 h cert), so most runs are no-ops.
+#
+# cert-manager + StepIssuer handles renewal inside Kubernetes — this cron is
+# only for system daemons that run directly on the host.
+#
+# Install:  sudo cp this file /etc/cron.d/step-cert-renew
+# Verify:   sudo crontab -u mansible -l
+#
+# To add a new service: append another line below following the same pattern.
+#
+# Format: <minute> <hour> <dom> <month> <dow> <user> <command>
+REPO=/srv/www/htdocs/carbide-enclave.kubernerdes.com
+
+# Hauler OCI registry — cert at /etc/hauler/tls/
+# Reload: kill and restart hauler serve (backend dir kept so no re-index needed)
+0 */6 * * * mansible ${REPO}/scripts/step-cert-renew.sh \
+    /etc/hauler/tls/hauler.crt \
+    /etc/hauler/tls/hauler.key \
+    "pkill -f 'hauler.*serve' 2>/dev/null; sleep 2; nohup hauler --store /var/lib/hauler store serve registry --port 5000 --directory /tmp/hauler-registry-backend --tls-cert /etc/hauler/tls/hauler.crt --tls-key /etc/hauler/tls/hauler.key </dev/null >>/tmp/hauler-serve.log 2>&1 &" \
+    >> /var/log/step-cert-renew.log 2>&1
