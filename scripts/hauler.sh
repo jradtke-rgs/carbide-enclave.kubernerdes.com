@@ -437,11 +437,15 @@ cmd_load() {
 }
 
 cmd_serve() {
+    local tls_cert="/etc/hauler/tls/hauler.crt"
+    local tls_key="/etc/hauler/tls/hauler.key"
     log "starting Hauler OCI registry on :5000 (store: ${STORE_DIR})"
     log "press Ctrl-C to stop"
     hauler store serve registry \
         --port 5000 \
-        --store "${STORE_DIR}"
+        --store "${STORE_DIR}" \
+        --tls-cert "${tls_cert}" \
+        --tls-key "${tls_key}"
 }
 
 cmd_serve_files() {
