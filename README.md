@@ -7,6 +7,8 @@ on the far side of the airgap boundary.
 
 **Full documentation:** [docs.carbide-enclave.kubernerdes.com](https://docs.carbide-enclave.kubernerdes.com)
 
+![Images/Software_Lifecycle_Path_Gemini.png](Images/Software_Lifecycle_Path_Gemini.png)
+
 ---
 
 ## Hardware
