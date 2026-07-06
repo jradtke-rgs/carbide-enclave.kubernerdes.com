@@ -82,7 +82,7 @@ generate_rke2_manifest() {
 # RKE2 ${RKE2_VERSION} — images and install tarballs
 # Source: ${CARBIDE_REGISTRY:-registry.ranchercarbide.dev}
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Images
 metadata:
   name: rke2-images
@@ -90,11 +90,11 @@ spec:
   images:
     # RKE2 runtime — consumed by platform/rke2
     - name: ${CARBIDE_REGISTRY}/rancher/rke2-runtime:${RKE2_TAG}
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: ${CARBIDE_REGISTRY}/rancher/rke2-runtime:${RKE2_TAG}
+      platform: linux/arm64
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Files
 metadata:
   name: rke2-binaries
@@ -120,7 +120,7 @@ generate_cert_manager_manifest() {
     cat > "${MANIFEST_DIR}/cert-manager.yaml" <<EOF
 # cert-manager ${CERT_MANAGER_VERSION} — consumed by platform/cert-manager
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Charts
 metadata:
   name: cert-manager-chart
@@ -130,32 +130,32 @@ spec:
       repoURL: https://charts.jetstack.io
       version: "${CERT_MANAGER_VERSION}"
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Images
 metadata:
   name: cert-manager-images
 spec:
   images:
     - name: quay.io/jetstack/cert-manager-controller:${CERT_MANAGER_VERSION}
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: quay.io/jetstack/cert-manager-controller:${CERT_MANAGER_VERSION}
+      platform: linux/arm64
     - name: quay.io/jetstack/cert-manager-webhook:${CERT_MANAGER_VERSION}
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: quay.io/jetstack/cert-manager-webhook:${CERT_MANAGER_VERSION}
+      platform: linux/arm64
     - name: quay.io/jetstack/cert-manager-cainjector:${CERT_MANAGER_VERSION}
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: quay.io/jetstack/cert-manager-cainjector:${CERT_MANAGER_VERSION}
+      platform: linux/arm64
     - name: quay.io/jetstack/cert-manager-acmesolver:${CERT_MANAGER_VERSION}
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: quay.io/jetstack/cert-manager-acmesolver:${CERT_MANAGER_VERSION}
+      platform: linux/arm64
     - name: quay.io/jetstack/cert-manager-startupapicheck:${CERT_MANAGER_VERSION}
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: quay.io/jetstack/cert-manager-startupapicheck:${CERT_MANAGER_VERSION}
+      platform: linux/arm64
 EOF
 }
 
@@ -164,7 +164,7 @@ generate_rancher_manifest() {
 # Rancher Manager ${RANCHER_VERSION} — consumed by platform/rancher
 # Source: Carbide registry (authenticated)
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Charts
 metadata:
   name: rancher-chart
@@ -174,7 +174,7 @@ spec:
       repoURL: https://charts.rancher.com/server-charts/prime
       version: "${RANCHER_VERSION}"
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Images
 metadata:
   name: rancher-images
@@ -182,50 +182,50 @@ spec:
   images:
     # Core Rancher Manager
     - name: ${CARBIDE_REGISTRY}/rancher/rancher:${RANCHER_VERSION}
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: ${CARBIDE_REGISTRY}/rancher/rancher:${RANCHER_VERSION}
+      platform: linux/arm64
     - name: ${CARBIDE_REGISTRY}/rancher/shell:v0.6.3
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: ${CARBIDE_REGISTRY}/rancher/shell:v0.6.3
+      platform: linux/arm64
     # Rancher system charts — deployed automatically on first boot
     # Versions must match what Rancher ${RANCHER_VERSION} installs
     - name: ${CARBIDE_REGISTRY}/rancher/rancher-webhook:v0.9.5
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: ${CARBIDE_REGISTRY}/rancher/rancher-webhook:v0.9.5
+      platform: linux/arm64
     - name: ${CARBIDE_REGISTRY}/rancher/system-upgrade-controller:v0.17.0
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: ${CARBIDE_REGISTRY}/rancher/system-upgrade-controller:v0.17.0
+      platform: linux/arm64
     - name: ${CARBIDE_REGISTRY}/rancher/turtles:v0.25.4
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: ${CARBIDE_REGISTRY}/rancher/turtles:v0.25.4
+      platform: linux/arm64
     # Fleet (GitOps engine) — used by fleet, fleet-agent, gitjob, helmops
     - name: ${CARBIDE_REGISTRY}/rancher/fleet:v0.14.6
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: ${CARBIDE_REGISTRY}/rancher/fleet:v0.14.6
+      platform: linux/arm64
     - name: ${CARBIDE_REGISTRY}/rancher/fleet-agent:v0.14.6
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: ${CARBIDE_REGISTRY}/rancher/fleet-agent:v0.14.6
+      platform: linux/arm64
     - name: ${CARBIDE_REGISTRY}/rancher/gitjob:v0.1.108
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: ${CARBIDE_REGISTRY}/rancher/gitjob:v0.1.108
+      platform: linux/arm64
     # Turtles (CAPI integration) — deployed by rancher-turtles operator
     - name: ${CARBIDE_REGISTRY}/rancher/cluster-api-controller:v1.10.6
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: ${CARBIDE_REGISTRY}/rancher/cluster-api-controller:v1.10.6
+      platform: linux/arm64
     # kuberlr-kubectl — used by clusterctl cleanup jobs
     - name: ${CARBIDE_REGISTRY}/rancher/kuberlr-kubectl:v5.0.0
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: ${CARBIDE_REGISTRY}/rancher/kuberlr-kubectl:v5.0.0
+      platform: linux/arm64
 EOF
 }
 
@@ -237,7 +237,7 @@ generate_harvester_manifest() {
 # Government edition assets served from nuc-00 Apache (pre-placed manually)
 # Community release URLs left as reference; govt assets are not on releases.rancher.com
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Files
 metadata:
   name: harvester-iso
@@ -258,7 +258,7 @@ generate_harbor_manifest() {
     cat > "${MANIFEST_DIR}/harbor.yaml" <<EOF
 # Harbor ${HARBOR_VERSION} — consumed by services/harbor
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Charts
 metadata:
   name: harbor-chart
@@ -268,34 +268,34 @@ spec:
       repoURL: https://helm.goharbor.io
       version: "${HARBOR_CHART_VERSION}"
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Images
 metadata:
   name: harbor-images
 spec:
   images:
     - name: goharbor/harbor-core:v${HARBOR_VERSION}
-      platforms: [linux/amd64]
+      platform: linux/amd64
     - name: goharbor/harbor-db:v${HARBOR_VERSION}
-      platforms: [linux/amd64]
+      platform: linux/amd64
     - name: goharbor/harbor-jobservice:v${HARBOR_VERSION}
-      platforms: [linux/amd64]
+      platform: linux/amd64
     - name: goharbor/harbor-log:v${HARBOR_VERSION}
-      platforms: [linux/amd64]
+      platform: linux/amd64
     - name: goharbor/harbor-portal:v${HARBOR_VERSION}
-      platforms: [linux/amd64]
+      platform: linux/amd64
     # harbor-redis not published for v2.11+ — Harbor chart uses bitnami/redis subchart
     # TODO: audit chart 1.14.0 image refs and add correct redis image before Harbor install
     - name: goharbor/harbor-registryctl:v${HARBOR_VERSION}
-      platforms: [linux/amd64]
+      platform: linux/amd64
     - name: goharbor/registry-photon:v${HARBOR_VERSION}
-      platforms: [linux/amd64]
+      platform: linux/amd64
     - name: goharbor/harbor-exporter:v${HARBOR_VERSION}
-      platforms: [linux/amd64]
+      platform: linux/amd64
     - name: goharbor/trivy-adapter-photon:v${HARBOR_VERSION}
-      platforms: [linux/amd64]
+      platform: linux/amd64
     - name: goharbor/nginx-photon:v${HARBOR_VERSION}
-      platforms: [linux/amd64]
+      platform: linux/amd64
 EOF
 }
 
@@ -303,7 +303,7 @@ generate_keycloak_manifest() {
     cat > "${MANIFEST_DIR}/keycloak.yaml" <<EOF
 # Keycloak ${KEYCLOAK_VERSION} — consumed by services/keycloak
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Charts
 metadata:
   name: keycloak-chart
@@ -313,16 +313,16 @@ spec:
       repoURL: https://charts.bitnami.com/bitnami
       version: "${KEYCLOAK_VERSION}"
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Images
 metadata:
   name: keycloak-images
 spec:
   images:
     - name: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
+      platform: linux/arm64
 EOF
 }
 
@@ -332,7 +332,7 @@ generate_step_manifest() {
 # step CLI ${STEP_CLI_VERSION} — required for manual CA trust bootstrap
 # on hosts not covered by an automated bootstrap script (e.g. DGX Spark)
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Files
 metadata:
   name: step-cli
@@ -348,7 +348,7 @@ generate_gpu_operator_manifest() {
 # NVIDIA GPU Operator ${GPU_OPERATOR_VERSION} — consumed by services/gpu-operator
 # Both platforms required: amd64 (Harvester nodes) + arm64 (DGX Spark)
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Charts
 metadata:
   name: gpu-operator-chart
@@ -358,16 +358,16 @@ spec:
       repoURL: https://helm.ngc.nvidia.com/nvidia
       version: "${GPU_OPERATOR_VERSION}"
 ---
-apiVersion: content.hauler.cattle.io/v1alpha1
+apiVersion: content.hauler.cattle.io/v1
 kind: Images
 metadata:
   name: gpu-operator-images
 spec:
   images:
     - name: nvcr.io/nvidia/gpu-operator:${GPU_OPERATOR_VERSION}
-      platforms:
-        - linux/amd64
-        - linux/arm64
+      platform: linux/amd64
+    - name: nvcr.io/nvidia/gpu-operator:${GPU_OPERATOR_VERSION}
+      platform: linux/arm64
     # TODO: verify full CUDA/driver sidecar image list against
     #       https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/
     #       and add platform-specific driver images here

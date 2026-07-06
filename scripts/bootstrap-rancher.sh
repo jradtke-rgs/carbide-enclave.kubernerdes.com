@@ -370,7 +370,7 @@ wait_for_rancher() {
 main() {
     log "Rancher Manager bootstrap — ${ENVIRONMENT}"
     log "kubeconfig: ${RKE2_KUBECONFIG}"
-    log "registry:   ${HAULER_REGISTRY}"
+    log "registry:   ${HAULER_REGISTRY_REMOTE}"
     log "hostname:   rancher.${DOMAIN}"
     log "CA:         ${STEP_CA_URL}"
     echo

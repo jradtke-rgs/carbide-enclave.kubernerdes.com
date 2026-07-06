@@ -89,6 +89,24 @@ configure_ntp() {
     chronyc tracking | grep -E "^(Reference|System time|Stratum)"
 }
 
+# ── TSIG key for cert-manager DNS01 ──────────────────────────────────────────
+# Called from configure_dns() before named-checkconf, because named.conf includes
+# tsig-cert-manager.key and named-checkconf will fail if the file doesn't exist.
+
+generate_named_tsig_key() {
+    local key_file="/etc/named.d/tsig-cert-manager.key"
+    if [[ -f "${key_file}" ]]; then
+        log "TSIG key already present: ${key_file}"
+        return
+    fi
+    log "generating TSIG key: cert-manager-dns01"
+    tsig-keygen -a hmac-sha256 cert-manager-dns01 > "${key_file}"
+    chmod 640 "${key_file}"
+    chown root:named "${key_file}"
+    log "TSIG key written: ${key_file}"
+    log "  (not committed to repo — runtime secret; read by bootstrap-cert-issuers.sh)"
+}
+
 # ── step 3: DNS (BIND) ───────────────────────────────────────────────────────
 
 configure_dns() {
@@ -107,6 +125,9 @@ configure_dns() {
 
     # Log directory
     install -d -m 750 -o named -g named /var/log/named
+
+    # TSIG key must exist before named-checkconf (named.conf includes it)
+    generate_named_tsig_key
 
     # Validate config before starting
     log "validating named config"

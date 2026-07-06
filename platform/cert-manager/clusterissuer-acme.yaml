@@ -1,0 +1,26 @@
+# ClusterIssuer: step-ca-acme — HTTP01 ACME solver
+# Applied by: scripts/bootstrap-cert-issuers.sh (idempotent; already created by bootstrap-rancher.sh)
+# Used for: individual per-service certs (Harbor, Keycloak, Rancher, etc.)
+# Limitation: HTTP01 cannot issue wildcard certs — use step-ca-dns01 for those
+#
+# caBundle: base64-encoded /etc/step-ca/certs/root_ca.crt from nuc-00
+#   Retrieve: sudo cat /etc/step-ca/certs/root_ca.crt | base64 -w 0
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: step-ca-acme
+  labels:
+    app.kubernetes.io/part-of: carbide-enclave
+    app.kubernetes.io/managed-by: manual
+spec:
+  acme:
+    server: https://ca.carbide-enclave.kubernerdes.com:8443/acme/acme/directory
+    email: cloudxabide@gmail.com
+    caBundle: <BASE64_STEP_CA_ROOT>
+    privateKeySecretRef:
+      name: step-ca-acme-account-key
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: nginx

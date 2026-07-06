@@ -1,0 +1,28 @@
+# Certificate: wildcard-carbide-enclave
+# Applied by: scripts/bootstrap-cert-issuers.sh
+# Issuer: step-ca-dns01 (DNS01/RFC2136 — required for wildcard SANs)
+# Secret: cert-manager/wildcard-carbide-enclave-tls
+#
+# To copy the secret into another namespace for use by an Ingress:
+#   kubectl get secret wildcard-carbide-enclave-tls -n cert-manager -o yaml \
+#     | sed 's/namespace: cert-manager/namespace: TARGET_NS/' \
+#     | kubectl apply -f -
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-carbide-enclave
+  namespace: cert-manager
+  labels:
+    app.kubernetes.io/part-of: carbide-enclave
+    app.kubernetes.io/managed-by: manual
+spec:
+  secretName: wildcard-carbide-enclave-tls
+  issuerRef:
+    name: step-ca-dns01
+    kind: ClusterIssuer
+  dnsNames:
+    - "*.carbide-enclave.kubernerdes.com"
+    - "carbide-enclave.kubernerdes.com"
+  duration: 2160h
+  renewBefore: 360h
