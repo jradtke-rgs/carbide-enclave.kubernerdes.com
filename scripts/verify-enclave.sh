@@ -35,7 +35,10 @@ fail()    { echo -e "  ${RED}FAIL${RESET}  $*"; FAIL=$((FAIL + 1)); }
 skip()    { echo -e "  ${YELLOW}SKIP${RESET}  $*"; SKIP=$((SKIP + 1)); }
 section() { echo; echo -e "${BOLD}── $* ──${RESET}"; }
 
-CA_CERT="/etc/step-ca/certs/root_ca.crt"
+# NOTE: not /etc/step-ca/certs/root_ca.crt — that dir is step-ca-user-owned
+# (mode 0700) and unreadable by mansible. This is the world-readable copy
+# staged into the system trust store by bootstrap-step-ca.sh (trust_root_ca).
+CA_CERT="/etc/pki/trust/anchors/carbide-enclave-root-ca.crt"
 HARVESTER_KC="${HOME}/.kube/carbide-enclave-harvester.kubeconfig"
 RKE2_KC="${HOME}/.kube/carbide-enclave-rke2.kubeconfig"
 
