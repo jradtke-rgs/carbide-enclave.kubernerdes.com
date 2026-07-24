@@ -15,7 +15,7 @@
 #
 # Prerequisites:
 #   - Harvester kubeconfig at ~/.kube/carbide-enclave-harvester.kubeconfig
-#   - step-ca root CA served at http://10.0.0.10/step/carbide-enclave-root-ca.crt
+#   - step-ca root CA served at http://10.0.0.10/step-ca/carbide-enclave-root-ca.crt
 #   - kubectl in PATH
 
 set -euo pipefail
@@ -26,7 +26,7 @@ source "${REPO_ROOT}/scripts/env.d/carbide-enclave.sh"
 KUBECONFIG="${KUBECONFIG:-${HOME}/.kube/carbide-enclave-harvester.kubeconfig}"
 export KUBECONFIG
 
-CA_URL="http://${BASTION_IP}/step/carbide-enclave-root-ca.crt"
+CA_URL="http://${BASTION_IP}/step-ca/carbide-enclave-root-ca.crt"
 
 log() { echo "[enclave] $*"; }
 
