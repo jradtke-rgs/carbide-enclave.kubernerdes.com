@@ -298,7 +298,6 @@ ${server_line}
 token: ${RKE2_TOKEN}
 tls-san:
   - ${RANCHER_VIP}
-  - rke2.${DOMAIN}
   - rancher.${DOMAIN}
   - rancher-01.${DOMAIN}
   - rancher-02.${DOMAIN}

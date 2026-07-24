@@ -103,7 +103,6 @@ check_dns() {
         "rancher-01.${DOMAIN}:${RANCHER_01_IP}"
         "rancher-02.${DOMAIN}:${RANCHER_02_IP}"
         "rancher-03.${DOMAIN}:${RANCHER_03_IP}"
-        "rke2.${DOMAIN}:${RANCHER_VIP}"
         "rancher.${DOMAIN}:${RANCHER_VIP}"
         "harbor.${DOMAIN}:${HARBOR_VIP}"
         "keycloak.${DOMAIN}:${KEYCLOAK_VIP}"
