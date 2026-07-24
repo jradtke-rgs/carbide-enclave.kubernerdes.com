@@ -4,7 +4,7 @@
 # Required privilege: sles (sudo rights required on nuc-00 for CA cert step)
 # SSH to VMs:        sles@<ip> with ~/.ssh/id_ecdsa-kubernerdes
 # Run from nuc-00:
-#   bash /srv/www/htdocs/carbide-enclave.kubernerdes.com/scripts/bootstrap-rke2.sh
+#   bash /srv/www/htdocs/carbide-enclave.kubernerdes.com/scripts/40_bootstrap-rke2.sh
 #
 # Prerequisites:
 #   - Hauler store populated at /var/lib/hauler (hauler.sh sync)

@@ -2,14 +2,14 @@
 # Bootstrap cert-manager ClusterIssuers and wildcard cert — carbide-enclave
 #
 # Required privilege: mansible (sudo only for reading step-ca root cert and TSIG key)
-# Run from nuc-00 after bootstrap-nuc-00.sh and bootstrap-rancher.sh:
-#   bash /srv/www/htdocs/carbide-enclave.kubernerdes.com/scripts/bootstrap-cert-issuers.sh
+# Run from nuc-00 after 10_bootstrap-nuc-00.sh and 50_bootstrap-rancher.sh:
+#   bash /srv/www/htdocs/carbide-enclave.kubernerdes.com/scripts/60_bootstrap-cert-issuers.sh
 #
 # Prerequisites:
 #   - RKE2 cluster healthy; kubeconfig at ~/.kube/carbide-enclave-rancher.kubeconfig
-#   - cert-manager running in cluster (deployed by bootstrap-rancher.sh)
-#   - step-ca running on nuc-00 (bootstrap-step-ca.sh complete)
-#   - TSIG key at /etc/named.d/tsig-cert-manager.key (bootstrap-nuc-00.sh creates it)
+#   - cert-manager running in cluster (deployed by 50_bootstrap-rancher.sh)
+#   - step-ca running on nuc-00 (20_bootstrap-step-ca.sh complete)
+#   - TSIG key at /etc/named.d/tsig-cert-manager.key (10_bootstrap-nuc-00.sh creates it)
 #   - BIND reloaded with allow-update for cert-manager-dns01 key
 #
 # What this does:
@@ -61,7 +61,7 @@ check_prerequisites() {
     fi
 
     if ! kctl get deploy cert-manager -n cert-manager &>/dev/null; then
-        log "ERROR: cert-manager not found — run bootstrap-rancher.sh first"
+        log "ERROR: cert-manager not found — run 50_bootstrap-rancher.sh first"
         ok=false
     fi
 
@@ -73,8 +73,8 @@ check_prerequisites() {
 
     if ! sudo test -f "${TSIG_KEY_FILE}"; then
         log "ERROR: TSIG key not found: ${TSIG_KEY_FILE}"
-        log "  Run bootstrap-nuc-00.sh to generate it, then reload BIND:"
-        log "    sudo bash scripts/bootstrap-nuc-00.sh"
+        log "  Run 10_bootstrap-nuc-00.sh to generate it, then reload BIND:"
+        log "    sudo bash scripts/10_bootstrap-nuc-00.sh"
         log "    sudo rndc reload"
         ok=false
     fi

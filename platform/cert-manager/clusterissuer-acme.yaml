@@ -1,5 +1,5 @@
 # ClusterIssuer: step-ca-acme — HTTP01 ACME solver
-# Applied by: scripts/bootstrap-cert-issuers.sh (idempotent; already created by bootstrap-rancher.sh)
+# Applied by: scripts/60_bootstrap-cert-issuers.sh (idempotent; already created by 50_bootstrap-rancher.sh)
 # Used for: individual per-service certs (Harbor, Keycloak, Rancher, etc.)
 # Limitation: HTTP01 cannot issue wildcard certs — use step-ca-dns01 for those
 #

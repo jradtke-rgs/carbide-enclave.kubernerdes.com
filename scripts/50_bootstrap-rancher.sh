@@ -4,12 +4,12 @@
 # Required privilege: mansible (sudo only for reading step-ca root cert)
 # Helm: >= 3.11 required (--plain-http for OCI registry)
 # Run from nuc-00:
-#   bash /srv/www/htdocs/carbide-enclave.kubernerdes.com/scripts/bootstrap-rancher.sh
+#   bash /srv/www/htdocs/carbide-enclave.kubernerdes.com/scripts/50_bootstrap-rancher.sh
 #
 # Prerequisites:
 #   - RKE2 cluster healthy; kubeconfig at ~/.kube/carbide-enclave-rancher.kubeconfig
 #   - Hauler store populated at /var/lib/hauler (hauler.sh sync)
-#   - step-ca running on nuc-00 (bootstrap-step-ca.sh complete)
+#   - step-ca running on nuc-00 (20_bootstrap-step-ca.sh complete)
 #   - DNS A record: rancher.carbide-enclave.kubernerdes.com → 10.0.0.30 (RANCHER_VIP)
 #   - DNS A record: ca.carbide-enclave.kubernerdes.com → 10.0.0.10 (nuc-00)
 #   - RANCHER_BOOTSTRAP_PASSWORD set in ~/.config/RGS/creds

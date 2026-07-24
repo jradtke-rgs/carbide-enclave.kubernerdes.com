@@ -43,7 +43,7 @@ scripts/
     creds.example        # Template for ~/.config/RGS/creds (never commit real creds)
   bashrc.d/
     RGS                  # Shell environment for operator sessions (safe to commit)
-  bootstrap-nuc-00.sh    # Bastion host setup (idempotent, run as root)
+  10_bootstrap-nuc-00.sh    # Bastion host setup (idempotent, run as root)
   hauler.sh              # Hauler artifact lifecycle: sync/save/load/serve/push
 docs/              # Inline reference docs; prose lives in the Docusaurus repo
 ```
@@ -334,7 +334,7 @@ kubectl v1.33 and PHP 8.2 installed. Repo live at `http://10.0.0.10/`.
    Transfer the tarball across the airgap boundary (USB, sneakernet, etc.).
 
 3. **step-ca setup** — bootstrap internal root CA on nuc-00 (script not yet written;
-   see `scripts/bootstrap-nuc-00.sh` as the model). step-ca does not need internet.
+   see `scripts/10_bootstrap-nuc-00.sh` as the model). step-ca does not need internet.
 
 4. **Harvester bare-metal install** — boot nuc-01/02/03 from Harvester ISO; config
    served by Apache at `http://10.0.0.10/harvester/`.

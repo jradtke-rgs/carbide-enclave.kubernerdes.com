@@ -52,10 +52,13 @@ scripts/
     creds.example         # Template for ~/.config/RGS/creds (never commit real creds)
   bashrc.d/
     RGS                   # Operator shell environment
-  bootstrap-nuc-00.sh     # Bastion host setup (idempotent)
-  bootstrap-step-ca.sh    # Internal CA setup on nuc-00 (idempotent)
-  bootstrap-rke2.sh       # RKE2 cluster bootstrap
-  hauler.sh               # Hauler artifact lifecycle: sync / save / load / serve / push
+  10_bootstrap-nuc-00.sh       # Bastion host setup (idempotent)
+  20_bootstrap-step-ca.sh      # Internal CA setup on nuc-00 (idempotent)
+  30_bootstrap-harvester.sh    # Harvester namespaces + CA cert + LoadBalancers
+  40_bootstrap-rke2.sh         # RKE2 cluster bootstrap
+  50_bootstrap-rancher.sh      # cert-manager + Rancher Manager install
+  60_bootstrap-cert-issuers.sh # ClusterIssuers + wildcard cert
+  hauler.sh                 # Hauler artifact lifecycle: sync / save / load / serve / push
 
 infra/
   nuc-00/                 # Config backups from nuc-00, mirroring its filesystem paths
@@ -108,8 +111,8 @@ source scripts/bashrc.d/RGS
 ### 3. Bootstrap sequence
 
 ```
-1.  Bastion (nuc-00)          sudo bash scripts/bootstrap-nuc-00.sh
-2.  Internal CA (step-ca)     sudo bash scripts/bootstrap-step-ca.sh
+1.  Bastion (nuc-00)          sudo bash scripts/10_bootstrap-nuc-00.sh
+2.  Internal CA (step-ca)     sudo bash scripts/20_bootstrap-step-ca.sh
 3.  Hauler collect            bash scripts/hauler.sh sync
 4.  Hauler save               bash scripts/hauler.sh save
     ── airgap boundary ────────────────────────────────────────────────────
@@ -118,15 +121,15 @@ source scripts/bashrc.d/RGS
 7.  Harvester install         iPXE boot nuc-01/02/03 from nuc-00
                               (configs at http://10.0.0.10/harvester/)
 8.  Harvester post-install    KUBECONFIG=~/.kube/carbide-enclave-harvester.kubeconfig \
-                              bash scripts/bootstrap-harvester.sh
+                              bash scripts/30_bootstrap-harvester.sh
                               (namespaces + CA cert + LoadBalancers)
 9.  Provision RKE2 VMs        cd infra/tofu/rke2-cluster && tofu apply
-10. RKE2 cluster              bash scripts/bootstrap-rke2.sh
-11. cert-manager + StepIssuer → platform/cert-manager/
-12. Harbor                    → services/harbor/
-13. Hauler → Harbor migration bash scripts/hauler.sh push
-14. Keycloak                  → services/keycloak/
-15. Rancher Manager           → platform/rancher/
+10. RKE2 cluster              bash scripts/40_bootstrap-rke2.sh
+11. Rancher Manager           bash scripts/50_bootstrap-rancher.sh
+12. cert-manager + StepIssuer bash scripts/60_bootstrap-cert-issuers.sh
+13. Harbor                    → services/harbor/
+14. Hauler → Harbor migration bash scripts/hauler.sh push
+15. Keycloak                  → services/keycloak/
 16. DGX Spark join            → services/gpu-operator/
 17. AI serving                → services/ai-serving/
 ```

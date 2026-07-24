@@ -1,6 +1,6 @@
 # Rancher Manager Helm values — carbide-enclave airgap install
 # Chart:   https://charts.rancher.com/server-charts/prime  v${RANCHER_VERSION}
-# Applied by: scripts/bootstrap-rancher.sh (via --set flags; this file is reference only)
+# Applied by: scripts/50_bootstrap-rancher.sh (via --set flags; this file is reference only)
 #
 # To upgrade (after Harbor is live, switch systemDefaultRegistry):
 #   helm upgrade rancher oci://localhost:5000/rancher \
@@ -32,7 +32,7 @@ ingress:
 # The CA cert is distributed via cattle-system/tls-ca (cacerts.pem).
 privateCA: true
 
-# cert-manager is installed separately by bootstrap-rancher.sh before this chart.
+# cert-manager is installed separately by 50_bootstrap-rancher.sh before this chart.
 # Do NOT set certmanager.version here — cert-manager is cluster-scoped, not chart-managed.
 
 resources:

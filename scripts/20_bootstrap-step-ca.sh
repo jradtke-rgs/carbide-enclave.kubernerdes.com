@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Bootstrap step-ca (internal root CA) — carbide-enclave
 #
-# Required privilege: root (run as root or: sudo bash bootstrap-step-ca.sh)
+# Required privilege: root (run as root or: sudo bash 20_bootstrap-step-ca.sh)
 # Required connection: internet (downloads step + step-ca binaries from GitHub)
 #
 # Run from nuc-00 before crossing the airgap boundary:
 #   cd /srv/www/htdocs/carbide-enclave.kubernerdes.com && git pull
-#   sudo bash scripts/bootstrap-step-ca.sh
+#   sudo bash scripts/20_bootstrap-step-ca.sh
 #
 # Idempotent: safe to re-run. CA init is skipped if already initialized.
 #

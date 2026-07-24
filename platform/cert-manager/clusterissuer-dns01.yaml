@@ -1,11 +1,11 @@
 # ClusterIssuer: step-ca-dns01 — DNS01 RFC2136 solver (for wildcard certs)
-# Applied by: scripts/bootstrap-cert-issuers.sh
+# Applied by: scripts/60_bootstrap-cert-issuers.sh
 # Used for: wildcard cert *.carbide-enclave.kubernerdes.com and any generic backup cert
 #
 # Prerequisites (all handled by bootstrap scripts):
-#   - TSIG key at /etc/named.d/tsig-cert-manager.key (bootstrap-nuc-00.sh)
-#   - BIND allow-update configured for key cert-manager-dns01 (bootstrap-nuc-00.sh)
-#   - Secret cert-manager-dns01-tsig in cert-manager ns (bootstrap-cert-issuers.sh)
+#   - TSIG key at /etc/named.d/tsig-cert-manager.key (10_bootstrap-nuc-00.sh)
+#   - BIND allow-update configured for key cert-manager-dns01 (10_bootstrap-nuc-00.sh)
+#   - Secret cert-manager-dns01-tsig in cert-manager ns (60_bootstrap-cert-issuers.sh)
 #
 # caBundle: base64-encoded /etc/step-ca/certs/root_ca.crt from nuc-00
 #   Retrieve: sudo cat /etc/step-ca/certs/root_ca.crt | base64 -w 0

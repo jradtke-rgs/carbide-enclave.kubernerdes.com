@@ -4,7 +4,7 @@
 # Required privilege: mansible (reads ~/.kube/; no root needed)
 # Run from nuc-00 or MBP after Harvester 3-node cluster is formed:
 #   KUBECONFIG=~/.kube/carbide-enclave-harvester.kubeconfig \
-#   bash scripts/bootstrap-harvester.sh
+#   bash scripts/30_bootstrap-harvester.sh
 #
 # What this does:
 #   1. Creates VM namespaces (vms-rancher, vms-observability, vms-apps)
@@ -134,7 +134,7 @@ main() {
     echo
 
     log "bootstrap complete"
-    log "next: provision VMs via tofu, then bootstrap-rke2.sh"
+    log "next: provision VMs via tofu, then 40_bootstrap-rke2.sh"
 }
 
 main "$@"

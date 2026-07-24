@@ -1,5 +1,5 @@
 # Certificate: wildcard-carbide-enclave
-# Applied by: scripts/bootstrap-cert-issuers.sh
+# Applied by: scripts/60_bootstrap-cert-issuers.sh
 # Issuer: step-ca-dns01 (DNS01/RFC2136 — required for wildcard SANs)
 # Secret: cert-manager/wildcard-carbide-enclave-tls
 #

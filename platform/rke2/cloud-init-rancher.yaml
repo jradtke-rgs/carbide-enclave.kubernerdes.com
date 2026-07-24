@@ -24,9 +24,9 @@
 # Prerequisites:
 #   - step-ca running on nuc-00 with cert served at http://10.0.0.10/step/
 #   - Harbor running at harbor.carbide-enclave.kubernerdes.com
-#   - CA cert already imported into Harbor's trust store (bootstrap-harvester.sh)
+#   - CA cert already imported into Harbor's trust store (30_bootstrap-harvester.sh)
 #
-# Note: bootstrap-rke2.sh also installs the CA cert via SSH (step 2) as a belt-and-
+# Note: 40_bootstrap-rke2.sh also installs the CA cert via SSH (step 2) as a belt-and-
 # suspenders measure. The cloud-init here ensures the cert is present before any
 # containerd / RKE2 processes start, avoiding a race.
 ---

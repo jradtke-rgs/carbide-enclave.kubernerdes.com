@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # Bootstrap nuc-00 (bastion host) — carbide-enclave
 #
-# Required privilege: root (run as root or: sudo bash bootstrap-nuc-00.sh)
+# Required privilege: root (run as root or: sudo bash 10_bootstrap-nuc-00.sh)
 # Required connection: ssh -i ~/.ssh/id_ecdsa-kubernerdes mansible@10.0.0.10
 #
 # First-time setup on nuc-00:
 #   sudo zypper install -y git-core
 #   sudo git clone https://github.com/jradtke-rgs/carbide-enclave.kubernerdes.com.git \
 #       /srv/www/htdocs/carbide-enclave.kubernerdes.com
-#   sudo bash /srv/www/htdocs/carbide-enclave.kubernerdes.com/scripts/bootstrap-nuc-00.sh
+#   sudo bash /srv/www/htdocs/carbide-enclave.kubernerdes.com/scripts/10_bootstrap-nuc-00.sh
 #
 # Subsequent updates:
 #   cd /srv/www/htdocs/carbide-enclave.kubernerdes.com && git pull
-#   sudo bash scripts/bootstrap-nuc-00.sh
+#   sudo bash scripts/10_bootstrap-nuc-00.sh
 #
 # Idempotent: safe to re-run. Each section checks before overwriting.
 #
@@ -104,7 +104,7 @@ generate_named_tsig_key() {
     chmod 640 "${key_file}"
     chown root:named "${key_file}"
     log "TSIG key written: ${key_file}"
-    log "  (not committed to repo — runtime secret; read by bootstrap-cert-issuers.sh)"
+    log "  (not committed to repo — runtime secret; read by 60_bootstrap-cert-issuers.sh)"
 }
 
 # ── step 3: DNS (BIND) ───────────────────────────────────────────────────────

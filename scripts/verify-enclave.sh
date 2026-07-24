@@ -37,7 +37,7 @@ section() { echo; echo -e "${BOLD}── $* ──${RESET}"; }
 
 # NOTE: not /etc/step-ca/certs/root_ca.crt — that dir is step-ca-user-owned
 # (mode 0700) and unreadable by mansible. This is the world-readable copy
-# staged into the system trust store by bootstrap-step-ca.sh (trust_root_ca).
+# staged into the system trust store by 20_bootstrap-step-ca.sh (trust_root_ca).
 CA_CERT="/etc/pki/trust/anchors/carbide-enclave-root-ca.crt"
 HARVESTER_KC="${HOME}/.kube/carbide-enclave-harvester.kubeconfig"
 RKE2_KC="${HOME}/.kube/carbide-enclave-rke2.kubeconfig"
@@ -178,7 +178,7 @@ check_harvester() {
     if [[ -n "${ca_subject}" ]]; then
         pass "step-ca in Harvester additional-ca  (${ca_subject})"
     else
-        fail "step-ca NOT in Harvester additional-ca  (run bootstrap-harvester.sh)"
+        fail "step-ca NOT in Harvester additional-ca  (run 30_bootstrap-harvester.sh)"
     fi
 
     # LoadBalancers allocated
@@ -188,7 +188,7 @@ check_harvester() {
     if [[ "${lb_count}" -ge 3 ]]; then
         pass "${lb_count} Harvester LoadBalancer(s) configured"
     else
-        fail "expected ≥3 Harvester LoadBalancers, found ${lb_count}  (run bootstrap-harvester.sh)"
+        fail "expected ≥3 Harvester LoadBalancers, found ${lb_count}  (run 30_bootstrap-harvester.sh)"
     fi
 }
 
